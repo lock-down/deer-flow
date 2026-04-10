@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeerFlow - 系统图表索引</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-bg: #f8fafc;
+      --c-canvas: #ffffff;
+      --c-border: #cbd5e1;
+      --c-text-main: #0f172a;
+      --c-text-sub: #64748b;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-ui); background: var(--c-bg); padding: 40px; min-height: 100vh; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .canvas { background: var(--c-canvas); border: 1px solid var(--c-border); padding: 40px; }
+    .header { border-bottom: 2px solid var(--c-border); padding-bottom: 20px; margin-bottom: 32px; }
+    .title { font-size: 24px; font-weight: 600; color: var(--c-text-main); margin-bottom: 6px; }
+    .subtitle { font-size: 12px; font-weight: 500; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.1em; }
+
+    .intro { font-size: 14px; color: var(--c-text-sub); line-height: 1.6; margin-bottom: 32px; padding: 16px; background: #f8fafc; border: 1px solid var(--c-border); }
+
+    .diagram-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .diagram-card { border: 1px solid var(--c-border); padding: 24px; background: var(--c-canvas); }
+    .diagram-card:hover { border-color: var(--c-text-main); }
+    .diagram-num { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); margin-bottom: 8px; }
+    .diagram-title { font-size: 16px; font-weight: 600; color: var(--c-text-main); margin-bottom: 8px; }
+    .diagram-desc { font-size: 13px; color: var(--c-text-sub); line-height: 1.5; margin-bottom: 16px; }
+    .diagram-link { font-family: var(--font-mono); font-size: 12px; color: var(--c-text-main); text-decoration: none; padding: 8px 16px; border: 1px solid var(--c-border); display: inline-block; }
+    .diagram-link:hover { background: var(--c-text-main); color: var(--c-canvas); }
+
+    .style-section { margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--c-border); }
+    .style-title { font-size: 14px; font-weight: 600; color: var(--c-text-main); margin-bottom: 16px; }
+    .style-desc { font-size: 12px; color: var(--c-text-sub); line-height: 1.6; }
+    .style-list { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .style-item { font-family: var(--font-mono); font-size: 10px; padding: 4px 8px; border: 1px solid var(--c-border); color: var(--c-text-sub); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="canvas">
+      <div class="header">
+        <div class="title">DeerFlow 系统图表索引</div>
+        <div class="subtitle">System Diagrams / Flat Engineering Blueprint Style</div>
+      </div>
+
+      <div class="intro">
+        本系列图表采用 "Flat Engineering Blueprint" 风格，以精确、客观、高数据墨水比为原则，
+        全面展示 DeerFlow 系统的架构、数据流、组件结构、API 和部署配置。
+        所有图表均为 HTML/CSS 格式，可在浏览器中直接查看。
+      </div>
+
+      <div class="diagram-grid">
+        <div class="diagram-card">
+          <div class="diagram-num">00</div>
+          <div class="diagram-title">系统总览</div>
+          <div class="diagram-desc">DeerFlow 整体架构概览，包括技术栈、核心组件、入口点和设计理念。</div>
+          <a href="00-system-overview.html" class="diagram-link">查看图表 →</a>
+        </div>
+
+        <div class="diagram-card">
+          <div class="diagram-num">01</div>
+          <div class="diagram-title">系统架构</div>
+          <div class="diagram-desc">服务层架构、端口配置、Nginx 路由规则、服务间连接关系。</div>
+          <a href="01-system-architecture.html" class="diagram-link">查看图表 →</a>
+        </div>
+
+        <div class="diagram-card">
+          <div class="diagram-num">02</div>
+          <div class="diagram-title">数据流程</div>
+          <div class="diagram-desc">请求处理流程、Agent 执行流程、SSE 响应流、Memory 更新机制。</div>
+          <a href="02-data-flow.html" class="diagram-link">查看图表 →</a>
+        </div>
+
+        <div class="diagram-card">
+          <div class="diagram-num">03</div>
+          <div class="diagram-title">Backend 组件结构</div>
+          <div class="diagram-desc">Harness/App 分层、模块组织、中间件链、依赖边界规则。</div>
+          <a href="03-backend-components.html" class="diagram-link">查看图表 →</a>
+        </div>
+
+        <div class="diagram-card">
+          <div class="diagram-num">04</div>
+          <div class="diagram-title">Frontend 组件结构</div>
+          <div class="diagram-desc">Next.js 路由、React 组件、核心 Hooks、数据流、目录结构。</div>
+          <a href="04-frontend-components.html" class="diagram-link">查看图表 →</a>
+        </div>
+
+        <div class="diagram-card">
+          <div class="diagram-num">05</div>
+          <div class="diagram-title">API 结构</div>
+          <div class="diagram-desc">Gateway API 端点、LangGraph API、SSE 事件类型、路由文件。</div>
+          <a href="05-api-structure.html" class="diagram-link">查看图表 →</a>
+        </div>
+
+        <div class="diagram-card">
+          <div class="diagram-num">06</div>
+          <div class="diagram-title">部署与状态管理</div>
+          <div class="diagram-desc">本地开发部署、Docker Compose、ThreadState 结构、存储系统、配置文件。</div>
+          <a href="06-deployment-state.html" class="diagram-link">查看图表 →</a>
+        </div>
+      </div>
+
+      <div class="style-section">
+        <div class="style-title">图表风格说明</div>
+        <div class="style-desc">
+          所有图表遵循 Flat Engineering Blueprint 设计原则：
+          无装饰 (无阴影、渐变、模糊)、扁平边框、单色基调、技术字体、严格对齐。
+        </div>
+        <div class="style-list">
+          <div class="style-item">Monochrome</div>
+          <div class="style-item">No Shadows</div>
+          <div class="style-item">No Gradients</div>
+          <div class="style-item">High Data-Ink Ratio</div>
+          <div class="style-item">JetBrains Mono</div>
+          <div class="style-item">Inter</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

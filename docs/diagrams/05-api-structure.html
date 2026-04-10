@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeerFlow - API 结构图</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-bg: #f8fafc;
+      --c-canvas: #ffffff;
+      --c-border: #cbd5e1;
+      --c-text-main: #0f172a;
+      --c-text-sub: #64748b;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-ui); background: var(--c-bg); padding: 40px; min-height: 100vh; }
+    .diagram-container { max-width: 1400px; margin: 0 auto; }
+    .diagram-canvas { background: var(--c-canvas); border: 1px solid var(--c-border); padding: 32px; }
+    .diagram-header { border-bottom: 1px solid var(--c-border); padding-bottom: 16px; margin-bottom: 32px; }
+    .diagram-title { font-size: 20px; font-weight: 600; color: var(--c-text-main); margin-bottom: 4px; }
+    .diagram-subtitle { font-size: 11px; font-weight: 500; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .api-section { margin-bottom: 24px; }
+    .api-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .api-label { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-main); font-weight: 500; }
+    .api-port { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); background: #f1f5f9; padding: 2px 6px; }
+    .api-desc { font-size: 12px; color: var(--c-text-sub); }
+
+    .endpoint-table { width: 100%; border-collapse: collapse; }
+    .endpoint-table th { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 12px; border-bottom: 1px solid var(--c-border); text-align: left; }
+    .endpoint-table td { font-size: 12px; color: var(--c-text-main); padding: 10px 12px; border-bottom: 1px solid var(--c-border); }
+    .endpoint-table td:first-child { font-family: var(--font-mono); font-size: 11px; }
+    .method-badge { font-family: var(--font-mono); font-size: 10px; padding: 2px 6px; border: 1px solid var(--c-border); color: var(--c-text-sub); display: inline-block; min-width: 40px; text-align: center; margin-right: 6px; }
+    .method-badge.post { background: #0f172a; color: #fff; border-color: #0f172a; }
+    .method-badge.get { background: #f8fafc; }
+    .method-badge.delete { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+
+    .endpoint-desc { color: var(--c-text-sub); font-size: 11px; }
+
+    .section-divider { border-top: 1px solid var(--c-border); margin: 24px 0; padding-top: 24px; }
+
+    .route-note { padding: 12px 16px; background: #f8fafc; border: 1px solid var(--c-border); margin: 16px 0; }
+    .route-note-title { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .route-note-content { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-main); line-height: 1.6; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  </style>
+</head>
+<body>
+  <div class="diagram-container">
+    <div class="diagram-canvas">
+      <div class="diagram-header">
+        <div class="diagram-title">DeerFlow API 结构</div>
+        <div class="diagram-subtitle">API Endpoints / Gateway + LangGraph</div>
+      </div>
+
+      <!-- Gateway API -->
+      <div class="api-section">
+        <div class="api-header">
+          <span class="api-label">Gateway API</span>
+          <span class="api-port">:8001</span>
+          <span class="api-desc">FastAPI 自定义网关，业务逻辑层</span>
+        </div>
+
+        <table class="endpoint-table">
+          <tr><th>ENDPOINT</th><th>METHOD</th><th>DESCRIPTION</th></tr>
+          <tr>
+            <td>/api/models</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">获取可用模型列表</td>
+          </tr>
+          <tr>
+            <td>/api/models/{name}</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">获取模型详情配置</td>
+          </tr>
+          <tr>
+            <td>/api/mcp/config</td>
+            <td><span class="method-badge get">GET</span><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">MCP 服务器配置 (获取/更新)</td>
+          </tr>
+          <tr>
+            <td>/api/memory</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">获取用户记忆数据</td>
+          </tr>
+          <tr>
+            <td>/api/memory/reload</td>
+            <td><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">重新加载记忆文件</td>
+          </tr>
+          <tr>
+            <td>/api/memory/config</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">获取记忆系统配置</td>
+          </tr>
+          <tr>
+            <td>/api/skills</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">获取已安装技能列表</td>
+          </tr>
+          <tr>
+            <td>/api/skills/{name}</td>
+            <td><span class="method-badge get">GET</span><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">技能详情 / 更新启用状态</td>
+          </tr>
+          <tr>
+            <td>/api/skills/install</td>
+            <td><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">安装 .skill 文件</td>
+          </tr>
+          <tr>
+            <td>/api/agents</td>
+            <td><span class="method-badge get">GET</span><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">自定义 Agent 管理</td>
+          </tr>
+          <tr>
+            <td>/api/threads/{id}/uploads</td>
+            <td><span class="method-badge post">POST</span><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">线程文件上传管理</td>
+          </tr>
+          <tr>
+            <td>/api/threads/{id}/uploads/{filename}</td>
+            <td><span class="method-badge delete">DELETE</span></td>
+            <td class="endpoint-desc">删除已上传文件</td>
+          </tr>
+          <tr>
+            <td>/api/threads/{id}/artifacts/{path}</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">获取工件内容</td>
+          </tr>
+          <tr>
+            <td>/api/threads/{id}</td>
+            <td><span class="method-badge delete">DELETE</span></td>
+            <td class="endpoint-desc">删除线程数据</td>
+          </tr>
+          <tr>
+            <td>/api/threads/{id}/runs</td>
+            <td><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">创建 Agent 运行</td>
+          </tr>
+          <tr>
+            <td>/api/threads/{id}/state</td>
+            <td><span class="method-badge get">GET</span><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">获取/更新线程状态</td>
+          </tr>
+          <tr>
+            <td>/api/runs/stream</td>
+            <td><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">无状态流式运行</td>
+          </tr>
+          <tr>
+            <td>/health</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">健康检查</td>
+          </tr>
+          <tr>
+            <td>/docs, /redoc, /openapi.json</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">API 文档</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- LangGraph API -->
+      <div class="api-section">
+        <div class="section-divider"></div>
+        <div class="api-header">
+          <span class="api-label">LangGraph API</span>
+          <span class="api-port">:2024</span>
+          <span class="api-desc">Agent 运行时，通过 nginx /api/langgraph/* 代理</span>
+        </div>
+
+        <div class="route-note">
+          <div class="route-note-title">Nginx Rewrite</div>
+          <div class="route-note-content">/api/langgraph/* → LangGraph :2024/* (移除 /api/langgraph 前缀)</div>
+        </div>
+
+        <table class="endpoint-table">
+          <tr><th>ENDPOINT</th><th>METHOD</th><th>DESCRIPTION</th></tr>
+          <tr>
+            <td>/assistants</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">获取助手列表 (Agent 定义)</td>
+          </tr>
+          <tr>
+            <td>/threads</td>
+            <td><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">创建新线程</td>
+          </tr>
+          <tr>
+            <td>/threads/search</td>
+            <td><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">搜索线程 (支持 metadata 过滤)</td>
+          </tr>
+          <tr>
+            <td>/threads/{id}</td>
+            <td><span class="method-badge get">GET</span><span class="method-badge delete">DELETE</span></td>
+            <td class="endpoint-desc">获取/删除线程</td>
+          </tr>
+          <tr>
+            <td>/threads/{id}/state</td>
+            <td><span class="method-badge get">GET</span><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">获取/更新线程状态</td>
+          </tr>
+          <tr>
+            <td>/threads/{id}/runs</td>
+            <td><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">创建 Agent 运行</td>
+          </tr>
+          <tr>
+            <td>/threads/{id}/runs/{run_id}</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">获取运行状态</td>
+          </tr>
+          <tr>
+            <td>/threads/{id}/runs/{run_id}/stream</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">流式运行输出 (SSE)</td>
+          </tr>
+          <tr>
+            <td>/threads/{id}/runs/{run_id}/cancel</td>
+            <td><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">取消运行</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Provisioner API -->
+      <div class="api-section">
+        <div class="section-divider"></div>
+        <div class="api-header">
+          <span class="api-label">Provisioner API</span>
+          <span class="api-port">:8002</span>
+          <span class="api-desc">Kubernetes Sandbox 管理 (可选)</span>
+        </div>
+
+        <table class="endpoint-table">
+          <tr><th>ENDPOINT</th><th>METHOD</th><th>DESCRIPTION</th></tr>
+          <tr>
+            <td>/api/sandboxes</td>
+            <td><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">创建 Sandbox 实例</td>
+          </tr>
+          <tr>
+            <td>/api/sandboxes/{id}</td>
+            <td><span class="method-badge get">GET</span><span class="method-badge delete">DELETE</span></td>
+            <td class="endpoint-desc">获取/删除 Sandbox</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- SSE Events -->
+      <div class="api-section">
+        <div class="section-divider"></div>
+        <div class="api-header">
+          <span class="api-label">SSE Event Types</span>
+          <span class="api-desc">流式响应事件格式</span>
+        </div>
+
+        <div class="two-col">
+          <table class="endpoint-table">
+            <tr><th>EVENT</th><th>DESCRIPTION</th></tr>
+            <tr><td>metadata</td><td class="endpoint-desc">运行元数据 (run_id, thread_id)</td></tr>
+            <tr><td>values</td><td class="endpoint-desc">状态快照 (完整 ThreadState)</td></tr>
+            <tr><td>messages</td><td class="endpoint-desc">消息增量 (AIMessagechunk)</td></tr>
+            <tr><td>tool_calls</td><td class="endpoint-desc">工具调用事件</td></tr>
+            <tr><td>artifacts</td><td class="endpoint-desc">工件生成通知</td></tr>
+            <tr><td>error</td><td class="endpoint-desc">错误信息</td></tr>
+            <tr><td>end</td><td class="endpoint-desc">流结束信号</td></tr>
+          </table>
+
+          <div class="route-note">
+            <div class="route-note-title">Stream Modes</div>
+            <div class="route-note-content">
+              stream_mode: ["values", "messages"]
+
+              values → 每次状态变更发送完整状态
+              messages → 消息增量流 (更高效)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Router Files -->
+      <div class="api-section">
+        <div class="section-divider"></div>
+        <div class="api-header">
+          <span class="api-label">Router Files</span>
+          <span class="api-desc">Gateway API 路由实现</span>
+        </div>
+
+        <table class="endpoint-table">
+          <tr><th>FILE</th><th>ENDPOINTS</th></tr>
+          <tr><td>routers/agents.py</td><td class="endpoint-desc">/api/agents</td></tr>
+          <tr><td>routers/artifacts.py</td><td class="endpoint-desc">/api/threads/{id}/artifacts</td></tr>
+          <tr><td>routers/memory.py</td><td class="endpoint-desc">/api/memory</td></tr>
+          <tr><td>routers/mcp.py</td><td class="endpoint-desc">/api/mcp</td></tr>
+          <tr><td>routers/models.py</td><td class="endpoint-desc">/api/models</td></tr>
+          <tr><td>routers/skills.py</td><td class="endpoint-desc">/api/skills</td></tr>
+          <tr><td>routers/threads.py</td><td class="endpoint-desc">/api/threads, /api/threads/{id}</td></tr>
+          <tr><td>routers/uploads.py</td><td class="endpoint-desc">/api/threads/{id}/uploads</td></tr>
+          <tr><td>routers/runs.py</td><td class="endpoint-desc">/api/runs/stream</td></tr>
+          <tr><td>routers/thread_runs.py</td><td class="endpoint-desc">/api/threads/{id}/runs</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

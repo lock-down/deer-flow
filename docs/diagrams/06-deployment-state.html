@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeerFlow - 部署与状态管理</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-bg: #f8fafc;
+      --c-canvas: #ffffff;
+      --c-border: #cbd5e1;
+      --c-text-main: #0f172a;
+      --c-text-sub: #64748b;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-ui); background: var(--c-bg); padding: 40px; min-height: 100vh; }
+    .diagram-container { max-width: 1400px; margin: 0 auto; }
+    .diagram-canvas { background: var(--c-canvas); border: 1px solid var(--c-border); padding: 32px; }
+    .diagram-header { border-bottom: 1px solid var(--c-border); padding-bottom: 16px; margin-bottom: 32px; }
+    .diagram-title { font-size: 20px; font-weight: 600; color: var(--c-text-main); margin-bottom: 4px; }
+    .diagram-subtitle { font-size: 11px; font-weight: 500; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .section { margin-bottom: 32px; }
+    .section-title { font-size: 13px; font-weight: 600; color: var(--c-text-main); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px dashed var(--c-border); }
+
+    .deploy-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    .deploy-box { border: 1px solid var(--c-border); padding: 16px; background: var(--c-canvas); }
+    .deploy-title { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--c-text-main); margin-bottom: 12px; }
+    .deploy-desc { font-size: 12px; color: var(--c-text-sub); line-height: 1.5; }
+    .deploy-list { margin-top: 12px; }
+    .deploy-item { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-main); padding: 4px 0; }
+
+    .cmd-block { font-family: var(--font-mono); font-size: 11px; background: #f8fafc; border: 1px solid var(--c-border); padding: 12px 16px; margin: 8px 0; color: var(--c-text-main); line-height: 1.6; }
+
+    .state-box { border: 1px solid var(--c-border); padding: 16px; background: var(--c-canvas); margin-bottom: 16px; }
+    .state-title { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--c-text-main); margin-bottom: 12px; }
+    .state-fields { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-main); line-height: 1.8; }
+
+    .flow-row { display: flex; align-items: center; gap: 8px; margin: 12px 0; padding: 12px; background: #f8fafc; border: 1px solid var(--c-border); }
+    .flow-node { border: 1px solid var(--c-border); padding: 8px 12px; background: var(--c-canvas); min-width: 100px; text-align: center; }
+    .flow-node-name { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-main); }
+    .flow-arrow { color: var(--c-text-sub); font-size: 12px; }
+    .flow-label { font-size: 10px; color: var(--c-text-sub); }
+
+    .storage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .storage-box { border: 1px solid var(--c-border); padding: 12px; background: var(--c-canvas); }
+    .storage-name { font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--c-text-main); margin-bottom: 6px; }
+    .storage-path { font-family: var(--font-mono); font-size: 9px; color: var(--c-text-sub); margin-bottom: 6px; }
+    .storage-desc { font-size: 11px; color: var(--c-text-sub); line-height: 1.4; }
+
+    .layer-divider { border-top: 1px solid var(--c-border); margin: 24px 0; padding-top: 24px; }
+
+    .badge { font-family: var(--font-mono); font-size: 9px; padding: 2px 6px; border: 1px solid var(--c-border); color: var(--c-text-sub); margin-right: 4px; }
+    .badge-solid { background: var(--c-text-main); color: var(--c-canvas); border-color: var(--c-text-main); }
+  </style>
+</head>
+<body>
+  <div class="diagram-container">
+    <div class="diagram-canvas">
+      <div class="diagram-header">
+        <div class="diagram-title">DeerFlow 部署与状态管理</div>
+        <div class="diagram-subtitle">Deployment & State Management</div>
+      </div>
+
+      <!-- Local Development -->
+      <div class="section">
+        <div class="section-title">1. 本地开发部署</div>
+        <div class="deploy-grid">
+          <div class="deploy-box">
+            <div class="deploy-title">启动流程</div>
+            <div class="deploy-desc">通过 Makefile 统一管理所有服务</div>
+            <div class="cmd-block">make check      # 检查系统依赖
+make install    # 安装前后端依赖
+make config     # 生成 config.yaml (首次)
+make dev        # 启动所有服务</div>
+            <div class="deploy-list">
+              <div class="deploy-item">→ Nginx :2026 (统一入口)</div>
+              <div class="deploy-item">→ Frontend :3000 (Next.js)</div>
+              <div class="deploy-item">→ Gateway :8001 (FastAPI)</div>
+              <div class="deploy-item">→ LangGraph :2024 (Agent)</div>
+            </div>
+          </div>
+          <div class="deploy-box">
+            <div class="deploy-title">停止与清理</div>
+            <div class="cmd-block">make stop       # 停止所有服务
+make clean      # 停止 + 清理临时文件</div>
+            <div class="deploy-desc">环境要求</div>
+            <div class="deploy-list">
+              <div class="deploy-item">Node.js >=22</div>
+              <div class="deploy-item">pnpm 10.26.2+</div>
+              <div class="deploy-item">Python >=3.12</div>
+              <div class="deploy-item">uv (Python 包管理)</div>
+              <div class="deploy-item">nginx</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Docker Compose -->
+      <div class="section">
+        <div class="layer-divider"></div>
+        <div class="section-title">2. Docker Compose 部署</div>
+        <div class="deploy-grid">
+          <div class="deploy-box">
+            <div class="deploy-title">容器服务</div>
+            <div class="deploy-list">
+              <div class="deploy-item">nginx → 端口映射 :2026</div>
+              <div class="deploy-item">frontend → 内部端口 :3000</div>
+              <div class="deploy-item">gateway → 内部端口 :8001</div>
+              <div class="deploy-item">langgraph → 内部端口 :2024</div>
+            </div>
+            <div class="deploy-desc">容器间通信使用 service name</div>
+            <div class="cmd-block"># IM channels 配置示例
+http://langgraph:2024  # 容器内</div>
+          </div>
+          <div class="deploy-box">
+            <div class="deploy-title">配置挂载</div>
+            <div class="deploy-list">
+              <div class="deploy-item">config.yaml → 应用配置</div>
+              <div class="deploy-item">extensions_config.json → MCP/Skills</div>
+              <div class="deploy-item">.deer-flow/ → 数据持久化</div>
+            </div>
+            <div class="deploy-desc">环境变量</div>
+            <div class="cmd-block">$OPENAI_API_KEY     # 模型 API Key
+$ANTHROPIC_API_KEY  # Claude API Key</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ThreadState -->
+      <div class="section">
+        <div class="layer-divider"></div>
+        <div class="section-title">3. ThreadState 状态结构</div>
+
+        <div class="state-box">
+          <div class="state-title">ThreadState (extends AgentState)</div>
+          <div class="state-fields">class ThreadState(AgentState):
+    messages: list[Message]          # 对话消息历史
+    sandbox: SandboxState | None     # 沙箱执行状态
+    thread_data: ThreadDataState | None  # 线程元数据
+    title: str | None                # 线程标题
+    artifacts: list[str]             # 工件列表 (归并去重)
+    todos: list | None               # 任务列表 (plan_mode)
+    uploaded_files: list[dict]       # 已上传文件
+    viewed_images: dict              # 已查看图片 (归并)</div>
+        </div>
+
+        <div class="flow-row">
+          <span class="flow-label">State Flow:</span>
+          <div class="flow-node"><div class="flow-node-name">Input</div></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node"><div class="flow-node-name">AgentNode</div></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node"><div class="flow-node-name">ToolsNode</div></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node"><div class="flow-node-name">Middleware</div></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-node"><div class="flow-node-name">Output</div></div>
+        </div>
+
+        <div class="deploy-desc">
+          <span class="badge badge-solid">重要</span>
+          归并策略: artifacts 和 viewed_images 使用特殊归并去重逻辑，避免重复
+        </div>
+      </div>
+
+      <!-- Storage -->
+      <div class="section">
+        <div class="layer-divider"></div>
+        <div class="section-title">4. 存储系统</div>
+
+        <div class="storage-grid">
+          <div class="storage-box">
+            <div class="storage-name">Checkpointer</div>
+            <div class="storage-path">SQLite: checkpoints.db</div>
+            <div class="storage-path">PostgreSQL: connection_string</div>
+            <div class="storage-desc">线程状态持久化，支持断点恢复</div>
+          </div>
+          <div class="storage-box">
+            <div class="storage-name">Memory Store</div>
+            <div class="storage-path">.deer-flow/memory.json</div>
+            <div class="storage-desc">用户记忆、历史摘要、事实库</div>
+          </div>
+          <div class="storage-box">
+            <div class="storage-name">Thread Data</div>
+            <div class="storage-path">.deer-flow/threads/{thread_id}/</div>
+            <div class="storage-desc">user-data/workspace, uploads, outputs</div>
+          </div>
+        </div>
+
+        <div class="state-box">
+          <div class="state-title">Memory 数据结构 (memory.json)</div>
+          <div class="state-fields">{
+  "user": {
+    "workContext": { "summary": "...", "updatedAt": "ISO" },
+    "personalContext": { "summary": "...", "updatedAt": "ISO" },
+    "topOfMind": { "summary": "...", "updatedAt": "ISO" }
+  },
+  "history": {
+    "recentMonths": { "summary": "..." },
+    "earlierContext": { "summary": "..." },
+    "longTermBackground": { "summary": "..." }
+  },
+  "facts": [
+    {
+      "id": "fact_xxx",
+      "content": "...",
+      "category": "context|preference|knowledge|behavior|goal",
+      "confidence": 0.0-1.0,
+      "createdAt": "ISO",
+      "source": "thread_id"
+    }
+  ]
+}</div>
+        </div>
+      </div>
+
+      <!-- Sandbox -->
+      <div class="section">
+        <div class="layer-divider"></div>
+        <div class="section-title">5. Sandbox 虚拟路径映射</div>
+
+        <div class="deploy-grid">
+          <div class="deploy-box">
+            <div class="deploy-title">虚拟路径 → 实际路径</div>
+            <div class="deploy-list">
+              <div class="deploy-item">/mnt/user-data/ → .deer-flow/threads/{thread_id}/user-data/</div>
+              <div class="deploy-item">/workspace/ → user-data/workspace/</div>
+              <div class="deploy-item">/uploads/ → user-data/uploads/</div>
+              <div class="deploy-item">/outputs/ → user-data/outputs/</div>
+            </div>
+            <div class="deploy-desc">
+              Agent 在沙箱中访问文件时使用虚拟路径，系统自动映射到实际线程目录
+            </div>
+          </div>
+          <div class="deploy-box">
+            <div class="deploy-title">Sandbox 类型</div>
+            <div class="deploy-list">
+              <div class="deploy-item"><span class="badge badge-solid">Local</span> 本地沙箱 (开发)</div>
+              <div class="deploy-item"><span class="badge">Docker</span> Docker 沙箱 (隔离)</div>
+              <div class="deploy-item"><span class="badge">K8s</span> Kubernetes 沙箱 (生产)</div>
+            </div>
+            <div class="cmd-block"># config.yaml
+sandbox:
+  use: deerflow.sandbox.local:LocalSandboxProvider
+  allow_host_bash: false</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Config Files -->
+      <div class="section">
+        <div class="layer-divider"></div>
+        <div class="section-title">6. 配置文件结构</div>
+
+        <div class="deploy-grid">
+          <div class="deploy-box">
+            <div class="deploy-title">config.yaml</div>
+            <div class="cmd-block">config_version: 6
+log_level: info
+
+models:
+  - name: qwen3.5-plus
+    use: langchain_openai:ChatOpenAI
+    model: qwen3.5-plus
+    base_url: https://...
+    api_key: $OPENAI_API_KEY
+    supports_thinking: true
+    supports_vision: true
+
+tools:
+  - name: web_search
+    use: deerflow.community.ddg_search:web_search_tool
+  - name: bash
+    use: deerflow.sandbox.tools:bash_tool
+
+sandbox:
+  use: deerflow.sandbox.local:LocalSandboxProvider
+
+memory:
+  enabled: true
+  storage_path: memory.json
+  debounce_seconds: 30</div>
+          </div>
+          <div class="deploy-box">
+            <div class="deploy-title">extensions_config.json</div>
+            <div class="cmd-block">{
+  "mcpServers": {
+    "server-name": {
+      "enabled": true,
+      "type": "stdio",
+      "command": "...",
+      "args": [...]
+    }
+  },
+  "skills": {
+    "skill-name": {
+      "enabled": true
+    }
+  }
+}</div>
+            <div class="deploy-desc">
+              <span class="badge">$VAR</span> 前缀表示从环境变量读取
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

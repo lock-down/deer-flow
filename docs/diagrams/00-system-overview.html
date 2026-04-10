@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeerFlow - 系统总览</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-bg: #f8fafc;
+      --c-canvas: #ffffff;
+      --c-border: #cbd5e1;
+      --c-text-main: #0f172a;
+      --c-text-sub: #64748b;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-ui); background: var(--c-bg); padding: 40px; min-height: 100vh; }
+    .diagram-container { max-width: 1600px; margin: 0 auto; }
+    .diagram-canvas { background: var(--c-canvas); border: 1px solid var(--c-border); padding: 40px; }
+    .diagram-header { border-bottom: 2px solid var(--c-border); padding-bottom: 20px; margin-bottom: 40px; }
+    .diagram-title { font-size: 24px; font-weight: 600; color: var(--c-text-main); margin-bottom: 6px; }
+    .diagram-subtitle { font-size: 12px; font-weight: 500; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.1em; }
+    .diagram-tagline { font-size: 14px; color: var(--c-text-sub); margin-top: 8px; }
+
+    .overview-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-bottom: 40px; }
+    .overview-box { border: 1px solid var(--c-border); padding: 20px; background: var(--c-canvas); }
+    .overview-title { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+    .overview-content { font-size: 13px; color: var(--c-text-main); line-height: 1.6; }
+
+    .stack-section { margin-bottom: 32px; }
+    .stack-title { font-size: 14px; font-weight: 600; color: var(--c-text-main); margin-bottom: 16px; }
+    .stack-items { display: flex; gap: 12px; flex-wrap: wrap; }
+    .stack-item { font-family: var(--font-mono); font-size: 11px; padding: 6px 12px; border: 1px solid var(--c-border); color: var(--c-text-main); background: #f8fafc; }
+
+    .arch-diagram { margin: 32px 0; }
+    .arch-row { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 16px; }
+    .arch-node { border: 1px solid var(--c-border); padding: 16px 24px; background: var(--c-canvas); min-width: 160px; text-align: center; position: relative; }
+    .arch-node-name { font-family: var(--font-mono); font-size: 13px; font-weight: 500; color: var(--c-text-main); }
+    .arch-node-port { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); margin-top: 4px; }
+    .arch-arrow { color: var(--c-text-sub); font-size: 20px; }
+    .arch-line { height: 1px; background: var(--c-border); flex: 1; }
+
+    .connector-area { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px; background: #f8fafc; border: 1px solid var(--c-border); margin: 24px 0; }
+    .connector-row { display: flex; align-items: center; gap: 12px; }
+    .connector-node { border: 1px solid var(--c-border); padding: 10px 16px; background: var(--c-canvas); }
+    .connector-arrow { color: var(--c-text-sub); font-size: 14px; }
+
+    .layer-box { border: 2px solid var(--c-border); padding: 24px; background: #f8fafc; margin: 24px 0; }
+    .layer-title { font-family: var(--font-mono); font-size: 12px; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; }
+    .layer-content { display: flex; gap: 24px; justify-content: space-around; }
+    .layer-item { border: 1px solid var(--c-border); padding: 12px 16px; background: var(--c-canvas); min-width: 140px; text-align: center; }
+    .layer-item-name { font-family: var(--font-mono); font-size: 12px; color: var(--c-text-main); }
+
+    .footer-info { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--c-border); }
+    .footer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+    .footer-box { }
+    .footer-title { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+    .footer-content { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-main); line-height: 1.6; }
+
+    .badge { font-family: var(--font-mono); font-size: 9px; padding: 2px 6px; border: 1px solid var(--c-border); color: var(--c-text-sub); margin-right: 4px; }
+  </style>
+</head>
+<body>
+  <div class="diagram-container">
+    <div class="diagram-canvas">
+      <div class="diagram-header">
+        <div class="diagram-title">DeerFlow 系统总览</div>
+        <div class="diagram-subtitle">Full-Stack Super Agent Harness</div>
+        <div class="diagram-tagline">编排子代理、记忆和沙箱，通过可扩展技能执行复杂任务</div>
+      </div>
+
+      <!-- Overview Grid -->
+      <div class="overview-grid">
+        <div class="overview-box">
+          <div class="overview-title">What is DeerFlow?</div>
+          <div class="overview-content">
+            DeerFlow 是一个全栈"超级代理框架"，它将子代理、记忆系统和沙箱环境整合在一起，通过 LangGraph 工作流引擎编排复杂的任务执行流程。
+          </div>
+        </div>
+        <div class="overview-box">
+          <div class="overview-title">Core Features</div>
+          <div class="overview-content">
+            <strong>Lead Agent</strong>: LangGraph 状态机<br>
+            <strong>Subagents</strong>: 并行任务委托<br>
+            <strong>Sandbox</strong>: 代码执行隔离<br>
+            <strong>Memory</strong>: 用户记忆持久化<br>
+            <strong>MCP</strong>: 工具协议集成<br>
+            <strong>Skills</strong>: 可扩展技能系统
+          </div>
+        </div>
+        <div class="overview-box">
+          <div class="overview-title">Design Philosophy</div>
+          <div class="overview-content">
+            <strong>Harness/App 分离</strong>: 可发布框架 vs 应用代码<br>
+            <strong>中间件链</strong>: 按顺序执行的处理层<br>
+            <strong>TDD</strong>: 测试驱动开发强制<br>
+            <strong>统一入口</strong>: Nginx 反向代理
+          </div>
+        </div>
+      </div>
+
+      <!-- Tech Stack -->
+      <div class="stack-section">
+        <div class="stack-title">Technology Stack</div>
+        <div class="stack-items">
+          <div class="stack-item">Python 3.12</div>
+          <div class="stack-item">LangGraph</div>
+          <div class="stack-item">FastAPI</div>
+          <div class="stack-item">Next.js 16</div>
+          <div class="stack-item">React 19</div>
+          <div class="stack-item">TypeScript 5.8</div>
+          <div class="stack-item">Tailwind CSS 4</div>
+          <div class="stack-item">SQLite/PostgreSQL</div>
+          <div class="stack-item">Nginx</div>
+          <div class="stack-item">Docker</div>
+        </div>
+      </div>
+
+      <!-- Architecture Diagram -->
+      <div class="arch-diagram">
+        <div class="layer-box">
+          <div class="layer-title">ENTRY POINT</div>
+          <div class="arch-row">
+            <div class="arch-node">
+              <div class="arch-node-name">Nginx</div>
+              <div class="arch-node-port">:2026</div>
+            </div>
+            <span class="arch-arrow">←</span>
+            <span style="font-size: 12px; color: var(--c-text-sub);">用户请求</span>
+          </div>
+          <div class="layer-content" style="justify-content: center; gap: 48px;">
+            <div style="font-size: 11px; color: var(--c-text-sub); text-align: center;">
+              /api/langgraph/* → LangGraph<br>
+              /api/* → Gateway<br>
+              /* → Frontend
+            </div>
+          </div>
+        </div>
+
+        <div class="connector-area">
+          <div class="connector-row">
+            <div class="connector-node">Nginx :2026</div>
+            <span class="connector-arrow">→</span>
+            <div class="connector-node">Frontend :3000</div>
+            <span class="connector-arrow">/</span>
+            <span style="font-size: 10px; color: var(--c-text-sub);">Web UI</span>
+          </div>
+          <div class="connector-row">
+            <div class="connector-node">Nginx :2026</div>
+            <span class="connector-arrow">→</span>
+            <div class="connector-node">Gateway :8001</div>
+            <span class="connector-arrow">/api/</span>
+            <span style="font-size: 10px; color: var(--c-text-sub);">REST API</span>
+          </div>
+          <div class="connector-row">
+            <div class="connector-node">Nginx :2026</div>
+            <span class="connector-arrow">→</span>
+            <div class="connector-node">LangGraph :2024</div>
+            <span class="connector-arrow">/api/langgraph/</span>
+            <span style="font-size: 10px; color: var(--c-text-sub);">Agent Runtime</span>
+          </div>
+        </div>
+
+        <div class="layer-box">
+          <div class="layer-title">CORE RUNTIME (deerflow-harness)</div>
+          <div class="layer-content">
+            <div class="layer-item"><div class="layer-item-name">Lead Agent</div></div>
+            <div class="layer-item"><div class="layer-item-name">Subagents</div></div>
+            <div class="layer-item"><div class="layer-item-name">Middlewares</div></div>
+            <div class="layer-item"><div class="layer-item-name">Tools</div></div>
+            <div class="layer-item"><div class="layer-item-name">Sandbox</div></div>
+            <div class="layer-item"><div class="layer-item-name">Memory</div></div>
+            <div class="layer-item"><div class="layer-item-name">MCP</div></div>
+            <div class="layer-item"><div class="layer-item-name">Skills</div></div>
+          </div>
+        </div>
+
+        <div class="layer-box">
+          <div class="layer-title">STORAGE</div>
+          <div class="layer-content">
+            <div class="layer-item"><div class="layer-item-name">Checkpointer</div></div>
+            <div class="layer-item"><div class="layer-item-name">Memory.json</div></div>
+            <div class="layer-item"><div class="layer-item-name">Thread Data</div></div>
+            <div class="layer-item"><div class="layer-item-name">Artifacts</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Info -->
+      <div class="footer-info">
+        <div class="footer-grid">
+          <div class="footer-box">
+            <div class="footer-title">Commands</div>
+            <div class="footer-content">make dev → 启动所有服务
+make stop → 停止服务
+make test → 运行测试
+make lint → 代码检查</div>
+          </div>
+          <div class="footer-box">
+            <div class="footer-title">Entry Points</div>
+            <div class="footer-content">本地: http://localhost:2026
+LangGraph: :2024
+Gateway: :8001
+Frontend: :3000</div>
+          </div>
+          <div class="footer-box">
+            <div class="footer-title">Key Files</div>
+            <div class="footer-content">config.yaml → 应用配置
+extensions_config.json → MCP/Skills
+langgraph.json → Agent 入口
+memory.json → 用户记忆</div>
+          </div>
+          <div class="footer-box">
+            <div class="footer-title">Docs</div>
+            <div class="footer-content">CLAUDE.md → 项目指南
+backend/CLAUDE.md → Backend 详情
+frontend/CLAUDE.md → Frontend 详情
+CONTRIBUTING.md → 贡献指南</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

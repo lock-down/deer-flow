@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeerFlow - 数据流程图</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-bg: #f8fafc;
+      --c-canvas: #ffffff;
+      --c-border: #cbd5e1;
+      --c-text-main: #0f172a;
+      --c-text-sub: #64748b;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-ui); background: var(--c-bg); padding: 40px; min-height: 100vh; }
+    .diagram-container { max-width: 1200px; margin: 0 auto; }
+    .diagram-canvas { background: var(--c-canvas); border: 1px solid var(--c-border); padding: 32px; }
+    .diagram-header { border-bottom: 1px solid var(--c-border); padding-bottom: 16px; margin-bottom: 32px; }
+    .diagram-title { font-size: 20px; font-weight: 600; color: var(--c-text-main); margin-bottom: 4px; }
+    .diagram-subtitle { font-size: 11px; font-weight: 500; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .flow-section { margin-bottom: 32px; }
+    .flow-title { font-size: 13px; font-weight: 600; color: var(--c-text-main); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px dashed var(--c-border); }
+
+    .flow-step { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 12px; }
+    .step-num { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-sub); background: #f1f5f9; padding: 4px 8px; min-width: 32px; text-align: center; }
+    .step-content { flex: 1; }
+    .step-name { font-family: var(--font-mono); font-size: 13px; color: var(--c-text-main); font-weight: 500; margin-bottom: 4px; }
+    .step-desc { font-size: 12px; color: var(--c-text-sub); line-height: 1.5; }
+    .step-file { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); background: #f8fafc; padding: 2px 6px; margin-top: 4px; display: inline-block; }
+
+    .flow-diagram { display: flex; align-items: center; gap: 8px; margin: 24px 0; padding: 16px; background: #f8fafc; border: 1px solid var(--c-border); overflow-x: auto; }
+    .flow-box { border: 1px solid var(--c-border); padding: 12px 16px; background: var(--c-canvas); white-space: nowrap; min-width: 120px; text-align: center; }
+    .flow-box-name { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-main); font-weight: 500; }
+    .flow-box-desc { font-size: 10px; color: var(--c-text-sub); margin-top: 4px; }
+    .flow-arrow { color: var(--c-text-sub); font-size: 16px; }
+    .flow-arrow-down { transform: rotate(90deg); }
+
+    .middleware-chain { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+    .middleware-item { font-family: var(--font-mono); font-size: 10px; padding: 6px 10px; border: 1px solid var(--c-border); background: var(--c-canvas); color: var(--c-text-main); }
+    .middleware-item.active { background: #0f172a; color: #fff; border-color: #0f172a; }
+
+    .code-block { font-family: var(--font-mono); font-size: 11px; background: #f8fafc; border: 1px solid var(--c-border); padding: 12px 16px; margin: 8px 0; white-space: pre-wrap; color: var(--c-text-main); line-height: 1.6; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .col-title { font-size: 12px; font-weight: 500; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <div class="diagram-container">
+    <div class="diagram-canvas">
+      <div class="diagram-header">
+        <div class="diagram-title">DeerFlow 数据流程</div>
+        <div class="diagram-subtitle">Data Flow / Request Lifecycle</div>
+      </div>
+
+      <!-- Request Flow -->
+      <div class="flow-section">
+        <div class="flow-title">1. 用户请求流程</div>
+        <div class="flow-diagram">
+          <div class="flow-box">
+            <div class="flow-box-name">User Input</div>
+            <div class="flow-box-desc">用户输入消息</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">useThreadStream</div>
+            <div class="flow-box-desc">React Hook</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">LangGraphClient</div>
+            <div class="flow-box-desc">API Client</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">Nginx</div>
+            <div class="flow-box-desc">:2026 路由</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">Gateway API</div>
+            <div class="flow-box-desc">:8001</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">LangGraph</div>
+            <div class="flow-box-desc">:2024 Agent执行</div>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="step-num">1.1</div>
+          <div class="step-content">
+            <div class="step-name">Frontend: sendMessage()</div>
+            <div class="step-desc">用户在 InputBox 输入消息，调用 useThreadStream.sendMessage()</div>
+            <div class="step-file">frontend/src/core/threads/hooks.ts</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">1.2</div>
+          <div class="step-content">
+            <div class="step-name">API Client: threads.runs.stream()</div>
+            <div class="step-desc">构建请求，设置 stream_mode=["values", "messages"]，发送 SSE 请求</div>
+            <div class="step-file">frontend/src/core/api/api-client.ts → getAPIClient()</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">1.3</div>
+          <div class="step-content">
+            <div class="step-name">Nginx: 路由转发</div>
+            <div class="step-desc">/api/langgraph/* → LangGraph Server :2024，其他 /api/* → Gateway :8001</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent Execution Flow -->
+      <div class="flow-section">
+        <div class="flow-title">2. Agent 执行流程</div>
+
+        <div class="flow-diagram">
+          <div class="flow-box">
+            <div class="flow-box-name">start_run()</div>
+            <div class="flow-box-desc">创建运行记录</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">make_lead_agent()</div>
+            <div class="flow-box-desc">构建 Agent 图</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">Middlewares</div>
+            <div class="flow-box-desc">中间件链</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">graph.astream()</div>
+            <div class="flow-box-desc">流式执行</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">StreamBridge</div>
+            <div class="flow-box-desc">SSE 事件发布</div>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="step-num">2.1</div>
+          <div class="step-content">
+            <div class="step-name">Gateway: start_run()</div>
+            <div class="step-desc">创建 RunRecord，构建 RunnableConfig，解析 agent_factory</div>
+            <div class="step-file">backend/app/gateway/services.py</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">2.2</div>
+          <div class="step-content">
+            <div class="step-name">Agent Factory: make_lead_agent()</div>
+            <div class="step-desc">创建 LangGraph 状态机，注入工具集，构建中间件链</div>
+            <div class="step-file">backend/packages/harness/deerflow/agents/lead_agent/agent.py</div>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="step-num">2.3</div>
+          <div class="step-content">
+            <div class="step-name">Middleware Chain (执行顺序)</div>
+            <div class="step-desc">按严格顺序执行的中间件链，每个中间件处理特定功能</div>
+            <div class="middleware-chain">
+              <div class="middleware-item">1. ThreadDataMiddleware</div>
+              <div class="middleware-item">2. UploadsMiddleware</div>
+              <div class="middleware-item">3. SandboxMiddleware</div>
+              <div class="middleware-item">4. DanglingToolCallMiddleware</div>
+              <div class="middleware-item">5. SummarizationMiddleware</div>
+              <div class="middleware-item">6. TodoMiddleware</div>
+              <div class="middleware-item">7. TitleMiddleware</div>
+              <div class="middleware-item">8. MemoryMiddleware</div>
+              <div class="middleware-item">9. ViewImageMiddleware</div>
+              <div class="middleware-item">10. SubagentLimitMiddleware</div>
+              <div class="middleware-item">11. LoopDetectionMiddleware</div>
+              <div class="middleware-item active">12. ClarificationMiddleware</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="step-num">2.4</div>
+          <div class="step-content">
+            <div class="step-name">run_agent() 后台任务</div>
+            <div class="step-desc">捕获检查点快照 → 发布 metadata → 执行 graph.astream() → 发布 SSE 事件 → 处理异常</div>
+            <div class="step-file">backend/packages/harness/deerflow/runtime/runs/worker.py</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Response Flow -->
+      <div class="flow-section">
+        <div class="flow-title">3. 响应流程 (SSE)</div>
+
+        <div class="flow-diagram">
+          <div class="flow-box">
+            <div class="flow-box-name">graph.astream()</div>
+            <div class="flow-box-desc">Agent 输出</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">StreamBridge</div>
+            <div class="flow-box-desc">事件队列</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">sse_consumer()</div>
+            <div class="flow-box-desc">HTTP SSE 流</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">Frontend</div>
+            <div class="flow-box-desc">实时渲染</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="col-title">SSE 事件类型</div>
+            <div class="code-block">metadata    → 运行元数据
+values      → 状态快照
+messages    → 消息增量
+tool_calls  → 工具调用
+artifacts   → 工件生成
+error       → 错误信息
+end         → 流结束</div>
+          </div>
+          <div>
+            <div class="col-title">StreamBridge 实现</div>
+            <div class="code-block">MemoryStreamBridge:
+  - publish(event) → 写入队列
+  - consume() → 异步迭代器
+  - publish_end() → 结束信号</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Memory Flow -->
+      <div class="flow-section">
+        <div class="flow-title">4. Memory 更新流程</div>
+        <div class="flow-diagram">
+          <div class="flow-box">
+            <div class="flow-box-name">Agent Response</div>
+            <div class="flow-box-desc">包含用户意图</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">MemoryMiddleware</div>
+            <div class="flow-box-desc">检测更新需求</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">MemoryUpdater</div>
+            <div class="flow-box-desc">异步更新队列</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">memory.json</div>
+            <div class="flow-box-desc">持久化存储</div>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="step-num">4.1</div>
+          <div class="step-content">
+            <div class="step-name">MemoryMiddleware</div>
+            <div class="step-desc">在 Agent 响应后检查是否需要更新记忆，触发异步更新</div>
+            <div class="step-file">backend/packages/harness/deerflow/agents/middlewares/memory_middleware.py</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="step-num">4.2</div>
+          <div class="step-content">
+            <div class="step-name">MemoryUpdater.update_memory()</div>
+            <div class="step-desc">调用 LLM 分析对话，提取用户信息、偏好、上下文，更新到 memory.json</div>
+            <div class="step-file">backend/packages/harness/deerflow/agents/memory/updater.py</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

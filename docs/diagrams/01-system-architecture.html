@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeerFlow - 系统架构图</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-bg: #f8fafc;
+      --c-canvas: #ffffff;
+      --c-border: #cbd5e1;
+      --c-text-main: #0f172a;
+      --c-text-sub: #64748b;
+      --c-accent: #dc2626;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-ui); background: var(--c-bg); padding: 40px; min-height: 100vh; }
+    .diagram-container { max-width: 1200px; margin: 0 auto; }
+    .diagram-canvas { background: var(--c-canvas); border: 1px solid var(--c-border); padding: 32px; }
+    .diagram-header { border-bottom: 1px solid var(--c-border); padding-bottom: 16px; margin-bottom: 32px; }
+    .diagram-title { font-size: 20px; font-weight: 600; color: var(--c-text-main); margin-bottom: 4px; }
+    .diagram-subtitle { font-size: 11px; font-weight: 500; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .arch-layer { margin-bottom: 24px; }
+    .layer-label { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; padding-left: 4px; }
+
+    .service-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .service-box { border: 1px solid var(--c-border); padding: 16px; background: var(--c-canvas); }
+    .service-box.full-width { grid-column: span 4; }
+    .service-box.half-width { grid-column: span 2; }
+    .service-name { font-family: var(--font-mono); font-size: 14px; font-weight: 500; color: var(--c-text-main); margin-bottom: 8px; }
+    .service-port { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-sub); background: #f1f5f9; padding: 2px 6px; display: inline-block; margin-bottom: 8px; }
+    .service-desc { font-size: 12px; color: var(--c-text-sub); line-height: 1.5; }
+
+    .router-section { margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--c-border); }
+    .route-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .route-item { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f8fafc; border: 1px solid var(--c-border); }
+    .route-path { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-main); min-width: 160px; }
+    .route-arrow { color: var(--c-text-sub); font-size: 12px; }
+    .route-target { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-sub); }
+
+    .connector-section { margin: 24px 0; }
+    .connector-row { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+    .connector-box { border: 1px solid var(--c-border); padding: 12px 16px; background: var(--c-canvas); min-width: 150px; text-align: center; }
+    .connector-arrow { color: var(--c-text-sub); font-size: 20px; }
+    .connector-line { flex: 1; height: 1px; background: var(--c-border); }
+    .connector-dashed { border-top: 1px dashed var(--c-border); height: 0; flex: 1; }
+
+    .badge { display: inline-block; font-family: var(--font-mono); font-size: 9px; padding: 2px 6px; border: 1px solid var(--c-border); color: var(--c-text-sub); margin-right: 4px; }
+    .badge-solid { background: var(--c-text-main); color: var(--c-canvas); border-color: var(--c-text-main); }
+  </style>
+</head>
+<body>
+  <div class="diagram-container">
+    <div class="diagram-canvas">
+      <div class="diagram-header">
+        <div class="diagram-title">DeerFlow 系统架构</div>
+        <div class="diagram-subtitle">System Architecture / v1.0</div>
+      </div>
+
+      <!-- Entry Layer -->
+      <div class="arch-layer">
+        <div class="layer-label">Entry Layer / 入口层</div>
+        <div class="service-grid">
+          <div class="service-box full-width">
+            <div class="service-name">Nginx Reverse Proxy</div>
+            <span class="service-port">:2026</span>
+            <div class="service-desc">
+              统一入口，CORS 处理，SSE 流式传输支持，静态资源缓存<br>
+              <span class="badge badge-solid">必选</span>
+              <span class="badge">负载均衡</span>
+              <span class="badge">SSL Termination</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Layer -->
+      <div class="arch-layer">
+        <div class="layer-label">Service Layer / 服务层</div>
+        <div class="service-grid">
+          <div class="service-box">
+            <div class="service-name">Frontend</div>
+            <span class="service-port">:3000</span>
+            <div class="service-desc">Next.js 16 + React 19<br>SSR/SSG + Turbopack</div>
+          </div>
+          <div class="service-box">
+            <div class="service-name">Gateway API</div>
+            <span class="service-port">:8001</span>
+            <div class="service-desc">FastAPI 网关<br>REST API + 业务逻辑</div>
+          </div>
+          <div class="service-box">
+            <div class="service-name">LangGraph Server</div>
+            <span class="service-port">:2024</span>
+            <div class="service-desc">Agent 运行时<br>工作流引擎 + 状态管理</div>
+          </div>
+          <div class="service-box">
+            <div class="service-name">Provisioner</div>
+            <span class="service-port">:8002</span>
+            <div class="service-desc">K8s Sandbox 管理<br><span class="badge">可选</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Core Layer -->
+      <div class="arch-layer">
+        <div class="layer-label">Core Layer / 核心层 (deerflow-harness)</div>
+        <div class="service-grid">
+          <div class="service-box">
+            <div class="service-name">Lead Agent</div>
+            <div class="service-desc">主代理引擎<br>LangGraph 状态机</div>
+          </div>
+          <div class="service-box">
+            <div class="service-name">Subagents</div>
+            <div class="service-desc">子代理委托系统<br>并行任务执行</div>
+          </div>
+          <div class="service-box">
+            <div class="service-name">Sandbox</div>
+            <div class="service-desc">代码执行沙箱<br>Local / Docker / K8s</div>
+          </div>
+          <div class="service-box">
+            <div class="service-name">MCP Tools</div>
+            <div class="service-desc">Model Context Protocol<br>工具集成层</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Storage Layer -->
+      <div class="arch-layer">
+        <div class="layer-label">Storage Layer / 存储层</div>
+        <div class="service-grid">
+          <div class="service-box half-width">
+            <div class="service-name">Checkpointer</div>
+            <div class="service-desc">SQLite (dev) / PostgreSQL (prod)<br>线程状态持久化</div>
+          </div>
+          <div class="service-box half-width">
+            <div class="service-name">Memory Store</div>
+            <div class="service-desc">memory.json<br>用户记忆 + 历史摘要</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Routing Rules -->
+      <div class="router-section">
+        <div class="layer-label">Nginx Routing Rules / 路由规则</div>
+        <div class="route-grid">
+          <div class="route-item">
+            <span class="route-path">/api/langgraph/*</span>
+            <span class="route-arrow">→</span>
+            <span class="route-target">LangGraph :2024 (/* rewrite)</span>
+          </div>
+          <div class="route-item">
+            <span class="route-path">/api/langgraph-compat/*</span>
+            <span class="route-arrow">→</span>
+            <span class="route-target">Gateway :8001 (/api/* rewrite)</span>
+          </div>
+          <div class="route-item">
+            <span class="route-path">/api/models, /api/memory, /api/mcp, /api/skills, /api/agents</span>
+            <span class="route-arrow">→</span>
+            <span class="route-target">Gateway :8001</span>
+          </div>
+          <div class="route-item">
+            <span class="route-path">/api/threads/*</span>
+            <span class="route-arrow">→</span>
+            <span class="route-target">Gateway :8001</span>
+          </div>
+          <div class="route-item">
+            <span class="route-path">/api/sandboxes</span>
+            <span class="route-arrow">→</span>
+            <span class="route-target">Provisioner :8002</span>
+          </div>
+          <div class="route-item">
+            <span class="route-path">/health, /docs, /redoc, /openapi.json</span>
+            <span class="route-arrow">→</span>
+            <span class="route-target">Gateway :8001</span>
+          </div>
+          <div class="route-item">
+            <span class="route-path">/* (其他)</span>
+            <span class="route-arrow">→</span>
+            <span class="route-target">Frontend :3000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

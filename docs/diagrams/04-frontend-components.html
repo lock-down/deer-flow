@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeerFlow - Frontend 组件结构</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-bg: #f8fafc;
+      --c-canvas: #ffffff;
+      --c-border: #cbd5e1;
+      --c-text-main: #0f172a;
+      --c-text-sub: #64748b;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-ui); background: var(--c-bg); padding: 40px; min-height: 100vh; }
+    .diagram-container { max-width: 1400px; margin: 0 auto; }
+    .diagram-canvas { background: var(--c-canvas); border: 1px solid var(--c-border); padding: 32px; }
+    .diagram-header { border-bottom: 1px solid var(--c-border); padding-bottom: 16px; margin-bottom: 32px; }
+    .diagram-title { font-size: 20px; font-weight: 600; color: var(--c-text-main); margin-bottom: 4px; }
+    .diagram-subtitle { font-size: 11px; font-weight: 500; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .tech-stack { display: flex; gap: 8px; margin-bottom: 24px; }
+    .tech-item { font-family: var(--font-mono); font-size: 10px; padding: 4px 8px; border: 1px solid var(--c-border); color: var(--c-text-sub); }
+
+    .layer-section { margin-bottom: 24px; }
+    .layer-label { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+
+    .component-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .component-box { border: 1px solid var(--c-border); padding: 12px; background: var(--c-canvas); }
+    .component-box.wide { grid-column: span 2; }
+    .component-name { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--c-text-main); margin-bottom: 6px; }
+    .component-path { font-family: var(--font-mono); font-size: 9px; color: var(--c-text-sub); margin-bottom: 6px; }
+    .component-desc { font-size: 11px; color: var(--c-text-sub); line-height: 1.4; }
+    .component-items { margin-top: 8px; }
+    .item { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-main); padding: 2px 0; }
+
+    .layer-divider { border-top: 1px solid var(--c-border); margin: 24px 0; padding-top: 24px; }
+
+    .hook-section { margin-bottom: 16px; }
+    .hook-name { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--c-text-main); margin-bottom: 8px; }
+    .hook-sig { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); background: #f8fafc; border: 1px solid var(--c-border); padding: 8px 12px; margin-bottom: 8px; }
+    .hook-desc { font-size: 11px; color: var(--c-text-sub); line-height: 1.5; }
+
+    .data-flow { display: flex; align-items: center; gap: 12px; padding: 16px; background: #f8fafc; border: 1px solid var(--c-border); margin: 16px 0; overflow-x: auto; }
+    .flow-box { border: 1px solid var(--c-border); padding: 10px 14px; background: var(--c-canvas); min-width: 100px; text-align: center; }
+    .flow-name { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-main); font-weight: 500; }
+    .flow-arrow { color: var(--c-text-sub); font-size: 14px; }
+
+    .tree-view { font-family: var(--font-mono); font-size: 10px; line-height: 1.8; color: var(--c-text-main); background: #f8fafc; border: 1px solid var(--c-border); padding: 16px; white-space: pre; }
+
+    .col-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  </style>
+</head>
+<body>
+  <div class="diagram-container">
+    <div class="diagram-canvas">
+      <div class="diagram-header">
+        <div class="diagram-title">DeerFlow Frontend 组件结构</div>
+        <div class="diagram-subtitle">Frontend Architecture / Next.js + React</div>
+      </div>
+
+      <!-- Tech Stack -->
+      <div class="tech-stack">
+        <div class="tech-item">Next.js 16</div>
+        <div class="tech-item">React 19</div>
+        <div class="tech-item">TypeScript 5.8</div>
+        <div class="tech-item">Tailwind CSS 4</div>
+        <div class="tech-item">pnpm 10.26.2</div>
+        <div class="tech-item">Turbopack</div>
+      </div>
+
+      <!-- App Layer -->
+      <div class="layer-section">
+        <div class="layer-label">APP ROUTES / 路由层</div>
+        <div class="component-grid">
+          <div class="component-box">
+            <div class="component-name">[lang]/</div>
+            <div class="component-path">app/[lang]/</div>
+            <div class="component-desc">国际化路由</div>
+            <div class="component-items">
+              <div class="item">workspace/chats/[thread_id]/ → 聊天页面</div>
+            </div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">api/</div>
+            <div class="component-path">app/api/</div>
+            <div class="component-desc">Next.js API 路由</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">workspace/</div>
+            <div class="component-path">app/workspace/</div>
+            <div class="component-desc">工作区入口</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Components Layer -->
+      <div class="layer-section">
+        <div class="layer-divider"></div>
+        <div class="layer-label">COMPONENTS / UI组件层</div>
+        <div class="component-grid">
+          <div class="component-box">
+            <div class="component-name">ui/</div>
+            <div class="component-path">components/ui/</div>
+            <div class="component-desc">Shadcn UI 组件库</div>
+            <div class="component-items">
+              <div class="item">Button, Dialog, Input</div>
+              <div class="item">Tabs, Toast, Tooltip</div>
+              <div class="item">ScrollArea, Sheet</div>
+            </div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">ai-elements/</div>
+            <div class="component-path">components/ai-elements/</div>
+            <div class="component-desc">Vercel AI SDK 元素</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">landing/</div>
+            <div class="component-path">components/landing/</div>
+            <div class="component-desc">落地页组件</div>
+          </div>
+        </div>
+
+        <div class="component-grid" style="margin-top: 12px;">
+          <div class="component-box wide">
+            <div class="component-name">workspace/</div>
+            <div class="component-path">components/workspace/</div>
+            <div class="component-desc">聊天页面核心组件</div>
+            <div class="component-items">
+              <div class="item">input-box.tsx → 消息输入框</div>
+              <div class="item">todo-list.tsx → 任务列表</div>
+              <div class="item">artifacts/ → 工件展示 (代码、图片、Markdown)</div>
+              <div class="item">messages/ → 消息组件 (气泡、工具调用、思考过程)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Core Layer -->
+      <div class="layer-section">
+        <div class="layer-divider"></div>
+        <div class="layer-label">CORE / 业务逻辑层</div>
+        <div class="component-grid">
+          <div class="component-box">
+            <div class="component-name">threads/</div>
+            <div class="component-path">core/threads/</div>
+            <div class="component-desc">线程管理 (核心)</div>
+            <div class="component-items">
+              <div class="item">hooks.ts → useThreadStream</div>
+              <div class="item">hooks.ts → useThreads</div>
+              <div class="item">types.ts → Thread 类型定义</div>
+            </div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">api/</div>
+            <div class="component-path">core/api/</div>
+            <div class="component-desc">API 客户端</div>
+            <div class="component-items">
+              <div class="item">api-client.ts → getAPIClient()</div>
+            </div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">artifacts/</div>
+            <div class="component-path">core/artifacts/</div>
+            <div class="component-desc">工件加载器</div>
+          </div>
+        </div>
+
+        <div class="component-grid" style="margin-top: 12px;">
+          <div class="component-box">
+            <div class="component-name">i18n/</div>
+            <div class="component-path">core/i18n/</div>
+            <div class="component-desc">国际化</div>
+            <div class="component-items">
+              <div class="item">locales/en-US.ts</div>
+              <div class="item">locales/zh-CN.ts</div>
+            </div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">mcp/</div>
+            <div class="component-path">core/mcp/</div>
+            <div class="component-desc">MCP 前端集成</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">memory/</div>
+            <div class="component-path">core/memory/</div>
+            <div class="component-desc">记忆系统</div>
+          </div>
+        </div>
+
+        <div class="component-grid" style="margin-top: 12px;">
+          <div class="component-box">
+            <div class="component-name">models/</div>
+            <div class="component-path">core/models/</div>
+            <div class="component-desc">模型管理</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">skills/</div>
+            <div class="component-path">core/skills/</div>
+            <div class="component-desc">Skills 管理</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">uploads/</div>
+            <div class="component-path">core/uploads/</div>
+            <div class="component-desc">文件上传</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Core Hooks -->
+      <div class="layer-section">
+        <div class="layer-divider"></div>
+        <div class="layer-label">CORE HOOKS / 核心 Hooks</div>
+
+        <div class="hook-section">
+          <div class="hook-name">useThreadStream</div>
+          <div class="hook-sig">function useThreadStream({
+  threadId,
+  context: { mode, thinking_enabled, subagent_enabled, ... },
+  isMock,
+  onStart,
+  onFinish,
+  onToolEnd
+}): [thread, sendMessage, isUploading]</div>
+          <div class="hook-desc">核心聊天 Hook：管理线程状态、发送消息、处理 SSE 流式响应、追踪上传状态</div>
+        </div>
+
+        <div class="hook-section">
+          <div class="hook-name">useThreads</div>
+          <div class="hook-sig">function useThreads(params: {
+  limit,
+  offset,
+  sortBy,
+  sortOrder
+}): { threads, isLoading, error }</div>
+          <div class="hook-desc">线程列表 Hook：分页加载、排序、错误处理</div>
+        </div>
+
+        <div class="hook-section">
+          <div class="hook-name">getAPIClient</div>
+          <div class="hook-sig">function getAPIClient(isMock?: boolean): LangGraphClient</div>
+          <div class="hook-desc">API 客户端单例：连接 LangGraph Server，提供 threads/runs/stream 方法</div>
+        </div>
+      </div>
+
+      <!-- Data Flow -->
+      <div class="layer-section">
+        <div class="layer-divider"></div>
+        <div class="layer-label">COMPONENT DATA FLOW / 组件数据流</div>
+
+        <div class="data-flow">
+          <div class="flow-box"><div class="flow-name">InputBox</div></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box"><div class="flow-name">useThreadStream.sendMessage()</div></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box"><div class="flow-name">LangGraphClient</div></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box"><div class="flow-name">SSE Stream</div></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box"><div class="flow-name">thread state</div></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box"><div class="flow-name">Messages</div></div>
+        </div>
+
+        <div class="col-2">
+          <div>
+            <div class="layer-label" style="margin-top: 16px;">Server Components</div>
+            <div class="component-desc">默认渲染模式，静态内容、布局</div>
+          </div>
+          <div>
+            <div class="layer-label" style="margin-top: 16px;">Client Components</div>
+            <div class="component-desc">"use client" 标记，交互组件、状态管理、Hooks</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Directory Tree -->
+      <div class="layer-section">
+        <div class="layer-divider"></div>
+        <div class="layer-label">DIRECTORY STRUCTURE</div>
+        <div class="tree-view">frontend/src/
+├── app/                     # Next.js 路由
+│   ├── [lang]/              # 国际化路由
+│   │   └── workspace/
+│   │       └── chats/[thread_id]/
+│   ├── api/                 # API 路由
+│   └── workspace/           # 工作区入口
+├── components/
+│   ├── ui/                  # Shadcn UI
+│   ├── ai-elements/         # Vercel AI SDK
+│   ├── workspace/           # 聊天组件
+│   │   ├── input-box.tsx
+│   │   ├── todo-list.tsx
+│   │   ├── artifacts/
+│   │   └── messages/
+│   └── landing/             # 落地页
+├── core/                    # 业务逻辑
+│   ├── threads/             # 核心 (hooks.ts)
+│   ├── api/                 # API Client
+│   ├── artifacts/
+│   ├── i18n/                # 国际化
+│   ├── mcp/
+│   ├── memory/
+│   ├── models/
+│   ├── skills/
+│   └── uploads/
+├── hooks/                   # 共享 Hooks
+├── lib/                     # 工具库 (cn)
+└── styles/                  # Tailwind v4</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

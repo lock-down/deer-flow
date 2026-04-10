@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeerFlow - Backend 组件结构</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c-bg: #f8fafc;
+      --c-canvas: #ffffff;
+      --c-border: #cbd5e1;
+      --c-text-main: #0f172a;
+      --c-text-sub: #64748b;
+      --font-ui: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: var(--font-ui); background: var(--c-bg); padding: 40px; min-height: 100vh; }
+    .diagram-container { max-width: 1400px; margin: 0 auto; }
+    .diagram-canvas { background: var(--c-canvas); border: 1px solid var(--c-border); padding: 32px; }
+    .diagram-header { border-bottom: 1px solid var(--c-border); padding-bottom: 16px; margin-bottom: 32px; }
+    .diagram-title { font-size: 20px; font-weight: 600; color: var(--c-text-main); margin-bottom: 4px; }
+    .diagram-subtitle { font-size: 11px; font-weight: 500; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.05em; }
+
+    .boundary-section { margin-bottom: 32px; }
+    .boundary-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+    .boundary-label { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-sub); text-transform: uppercase; letter-spacing: 0.1em; }
+    .boundary-path { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); background: #f1f5f9; padding: 2px 6px; }
+    .boundary-rule { font-size: 11px; color: var(--c-text-main); padding: 4px 8px; border: 1px solid var(--c-border); background: var(--c-canvas); }
+
+    .module-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .module-box { border: 1px solid var(--c-border); padding: 12px; background: var(--c-canvas); }
+    .module-box.large { grid-column: span 2; }
+    .module-name { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--c-text-main); margin-bottom: 6px; }
+    .module-path { font-family: var(--font-mono); font-size: 9px; color: var(--c-text-sub); margin-bottom: 6px; }
+    .module-desc { font-size: 11px; color: var(--c-text-sub); line-height: 1.4; }
+    .module-components { margin-top: 8px; }
+    .component-item { font-family: var(--font-mono); font-size: 10px; color: var(--c-text-main); padding: 2px 0; }
+
+    .layer-divider { border-top: 1px solid var(--c-border); margin: 24px 0; padding-top: 24px; }
+
+    .import-flow { display: flex; align-items: center; gap: 16px; margin: 16px 0; padding: 16px; background: #f8fafc; border: 1px solid var(--c-border); }
+    .import-box { border: 1px solid var(--c-border); padding: 12px 16px; background: var(--c-canvas); }
+    .import-label { font-family: var(--font-mono); font-size: 11px; color: var(--c-text-main); }
+    .import-arrow { color: var(--c-text-sub); font-size: 14px; }
+    .import-direction { font-size: 11px; color: var(--c-text-sub); }
+
+    .tree-view { font-family: var(--font-mono); font-size: 11px; line-height: 1.8; color: var(--c-text-main); background: #f8fafc; border: 1px solid var(--c-border); padding: 16px; white-space: pre; }
+  </style>
+</head>
+<body>
+  <div class="diagram-container">
+    <div class="diagram-canvas">
+      <div class="diagram-header">
+        <div class="diagram-title">DeerFlow Backend 组件结构</div>
+        <div class="diagram-subtitle">Backend Architecture / Harness vs App Boundary</div>
+      </div>
+
+      <!-- Import Boundary -->
+      <div class="boundary-section">
+        <div class="boundary-header">
+          <span class="boundary-label">Dependency Rule</span>
+          <span class="boundary-rule">App imports deerflow, deerflow NEVER imports app</span>
+        </div>
+        <div class="import-flow">
+          <div class="import-box">
+            <div class="import-label">app.*</div>
+          </div>
+          <span class="import-arrow">→</span>
+          <div class="import-box">
+            <div class="import-label">deerflow.*</div>
+          </div>
+          <span class="import-direction">(单向依赖，测试: tests/test_harness_boundary.py)</span>
+        </div>
+      </div>
+
+      <!-- Harness Layer -->
+      <div class="boundary-section">
+        <div class="boundary-header">
+          <span class="boundary-label">HARNESS</span>
+          <span class="boundary-path">packages/harness/deerflow/</span>
+          <span class="boundary-rule">可发布的 Agent 框架</span>
+        </div>
+
+        <!-- Agents Module -->
+        <div class="module-grid">
+          <div class="module-box large">
+            <div class="module-name">agents/</div>
+            <div class="module-path">deerflow.agents.*</div>
+            <div class="module-desc">Agent 系统：Lead Agent、中间件、记忆、子代理</div>
+            <div class="module-components">
+              <div class="component-item">lead_agent/agent.py → make_lead_agent()</div>
+              <div class="component-item">lead_agent/prompt.py → apply_prompt_template()</div>
+              <div class="component-item">middlewares/*.py → 12个中间件组件</div>
+              <div class="component-item">memory/updater.py → MemoryUpdater</div>
+              <div class="component-item">subagents/ → 子代理注册与执行</div>
+              <div class="component-item">thread_state.py → ThreadState 状态定义</div>
+            </div>
+          </div>
+          <div class="module-box">
+            <div class="module-name">sandbox/</div>
+            <div class="module-path">deerflow.sandbox.*</div>
+            <div class="module-desc">代码执行沙箱</div>
+            <div class="module-components">
+              <div class="component-item">local/local_sandbox.py</div>
+              <div class="component-item">tools.py → bash, read_file</div>
+              <div class="component-item">sandbox_provider.py</div>
+            </div>
+          </div>
+          <div class="module-box">
+            <div class="module-name">mcp/</div>
+            <div class="module-path">deerflow.mcp.*</div>
+            <div class="module-desc">MCP 工具集成</div>
+            <div class="module-components">
+              <div class="component-item">client.py → MCPClient</div>
+              <div class="component-item">tools.py → load_mcp_tools</div>
+              <div class="component-item">cache.py → 工具缓存</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer-divider"></div>
+
+        <!-- Models & Tools -->
+        <div class="module-grid">
+          <div class="module-box">
+            <div class="module-name">models/</div>
+            <div class="module-path">deerflow.models.*</div>
+            <div class="module-desc">LLM 模型工厂</div>
+            <div class="module-components">
+              <div class="component-item">factory.py → create_chat_model()</div>
+              <div class="component-item">patched_openai.py</div>
+              <div class="component-item">patched_deepseek.py</div>
+              <div class="component-item">vllm_provider.py</div>
+            </div>
+          </div>
+          <div class="module-box">
+            <div class="module-name">tools/</div>
+            <div class="module-path">deerflow.tools.*</div>
+            <div class="module-desc">内置工具集</div>
+            <div class="module-components">
+              <div class="component-item">builtins/task_tool.py → task()</div>
+              <div class="component-item">builtins/present_file_tool.py</div>
+              <div class="component-item">builtins/ask_clarification_tool.py</div>
+            </div>
+          </div>
+          <div class="module-box">
+            <div class="module-name">skills/</div>
+            <div class="module-path">deerflow.skills.*</div>
+            <div class="module-desc">Skills 加载系统</div>
+            <div class="module-components">
+              <div class="component-item">loader.py → load_skills()</div>
+              <div class="component-item">parser.py → SKILL.md 解析</div>
+              <div class="component-item">installer.py → .skill 安装</div>
+            </div>
+          </div>
+          <div class="module-box">
+            <div class="module-name">runtime/</div>
+            <div class="module-path">deerflow.runtime.*</div>
+            <div class="module-desc">运行时系统</div>
+            <div class="module-components">
+              <div class="component-item">runs/worker.py → run_agent()</div>
+              <div class="component-item">runs/manager.py → RunManager</div>
+              <div class="component-item">stream_bridge/ → SSE 桥接</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer-divider"></div>
+
+        <!-- Config & Community -->
+        <div class="module-grid">
+          <div class="module-box large">
+            <div class="module-name">config/</div>
+            <div class="module-path">deerflow.config.*</div>
+            <div class="module-desc">配置系统：AppConfig、Agent 配置、Memory/Sandbox 配置</div>
+            <div class="module-components">
+              <div class="component-item">app_config.py → AppConfig (config.yaml 解析)</div>
+              <div class="component-item">agents_config.py → Agent 配置</div>
+              <div class="component-item">memory_config.py → MemoryConfig</div>
+              <div class="component-item">sandbox_config.py → SandboxConfig</div>
+              <div class="component-item">models_config.py → 模型配置</div>
+            </div>
+          </div>
+          <div class="module-box large">
+            <div class="module-name">community/</div>
+            <div class="module-path">deerflow.community.*</div>
+            <div class="module-desc">社区贡献工具</div>
+            <div class="module-components">
+              <div class="component-item">ddg_search/ → DuckDuckGo 搜索</div>
+              <div class="component-item">jina_ai/ → Jina Reader</div>
+              <div class="component-item">tavily/ → Tavily 搜索</div>
+              <div class="component-item">image_search/ → 图片搜索</div>
+              <div class="component-item">aio_sandbox/ → Docker 沙箱</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- App Layer -->
+      <div class="boundary-section">
+        <div class="layer-divider"></div>
+        <div class="boundary-header">
+          <span class="boundary-label">APP</span>
+          <span class="boundary-path">app/</span>
+          <span class="boundary-rule">应用层，不可发布</span>
+        </div>
+
+        <div class="module-grid">
+          <div class="module-box large">
+            <div class="module-name">gateway/</div>
+            <div class="module-path">app.gateway.*</div>
+            <div class="module-desc">FastAPI Gateway API</div>
+            <div class="module-components">
+              <div class="component-item">app.py → FastAPI 应用入口</div>
+              <div class="component-item">services.py → start_run(), sse_consumer()</div>
+              <div class="component-item">deps.py → 依赖注入</div>
+              <div class="component-item">routers/agents.py → /api/agents</div>
+              <div class="component-item">routers/threads.py → /api/threads</div>
+              <div class="component-item">routers/memory.py → /api/memory</div>
+              <div class="component-item">routers/mcp.py → /api/mcp</div>
+              <div class="component-item">routers/skills.py → /api/skills</div>
+              <div class="component-item">routers/uploads.py → 文件上传</div>
+            </div>
+          </div>
+          <div class="module-box large">
+            <div class="module-name">channels/</div>
+            <div class="module-path">app.channels.*</div>
+            <div class="module-desc">IM 渠道集成</div>
+            <div class="module-components">
+              <div class="component-item">service.py → ChannelService</div>
+              <div class="component-item">manager.py → ChannelManager</div>
+              <div class="component-item">message_bus.py → 消息总线</div>
+              <div class="component-item">feishu.py → 飞书集成</div>
+              <div class="component-item">slack.py → Slack 集成</div>
+              <div class="component-item">telegram.py → Telegram 集成</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Directory Tree -->
+      <div class="boundary-section">
+        <div class="layer-divider"></div>
+        <div class="boundary-header">
+          <span class="boundary-label">DIRECTORY STRUCTURE</span>
+        </div>
+        <div class="tree-view">backend/
+├── packages/harness/deerflow/    # deerflow.* 导入
+│   ├── agents/
+│   │   ├── lead_agent/
+│   │   ├── middlewares/
+│   │   ├── memory/
+│   │   └── subagents/
+│   ├── sandbox/
+│   ├── mcp/
+│   ├── models/
+│   ├── tools/
+│   ├── skills/
+│   ├── runtime/
+│   ├── config/
+│   ├── community/
+│   ├── utils/
+│   └── client.py                 # DeerFlowClient
+├── app/                          # app.* 导入
+│   ├── gateway/
+│   │   ├── app.py
+│   │   ├── services.py
+│   │   ├── deps.py
+│   │   └── routers/
+│   └── channels/
+│       ├── service.py
+│       ├── manager.py
+│       ├── feishu.py
+│       ├── slack.py
+│       └── telegram.py
+└── tests/
+    └── test_harness_boundary.py  # 依赖边界测试</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
