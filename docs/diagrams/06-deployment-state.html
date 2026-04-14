@@ -72,10 +72,14 @@
           <div class="deploy-box">
             <div class="deploy-title">启动流程</div>
             <div class="deploy-desc">通过 Makefile 统一管理所有服务</div>
-            <div class="cmd-block">make check      # 检查系统依赖
-make install    # 安装前后端依赖
-make config     # 生成 config.yaml (首次)
-make dev        # 启动所有服务</div>
+            <div class="cmd-block">make check          # 检查系统依赖
+make install        # 安装前后端依赖
+make config          # 生成 config.yaml (首次)
+make config-upgrade  # 合并配置新字段
+make setup           # 交互式设置向导
+make doctor          # 检查配置和系统
+make dev             # 启动所有服务 (标准模式)
+make dev-pro         # 启动所有服务 (网关模式)</div>
             <div class="deploy-list">
               <div class="deploy-item">→ Nginx :2026 (统一入口)</div>
               <div class="deploy-item">→ Frontend :3000 (Next.js)</div>
@@ -94,6 +98,28 @@ make clean      # 停止 + 清理临时文件</div>
               <div class="deploy-item">Python >=3.12</div>
               <div class="deploy-item">uv (Python 包管理)</div>
               <div class="deploy-item">nginx</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="state-box" style="margin-top: 16px;">
+          <div class="state-title">运行时模式 (Runtime Modes)</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px;">
+            <div style="border: 1px solid var(--c-border); padding: 12px; background: var(--c-canvas);">
+              <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--c-text-main); margin-bottom: 6px;"><span class="badge badge-solid">Standard</span> 标准模式 <code>make dev</code></div>
+              <div style="font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); line-height: 1.6;">
+                4 进程: Nginx + Frontend + Gateway + LangGraph<br>
+                Agent 运行在独立 LangGraph Server(:2024)<br>
+                Nginx 路由 /api/langgraph/* → LangGraph
+              </div>
+            </div>
+            <div style="border: 1px solid var(--c-border); padding: 12px; background: var(--c-canvas);">
+              <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 500; color: var(--c-text-main); margin-bottom: 6px;"><span class="badge">Gateway</span> 网关模式 <code>make dev-pro</code></div>
+              <div style="font-family: var(--font-mono); font-size: 10px; color: var(--c-text-sub); line-height: 1.6;">
+                3 进程: Nginx + Frontend + Gateway(embedded)<br>
+                Agent 运行时嵌入 Gateway via RunManager + StreamBridge<br>
+                无需独立 LangGraph Server
+              </div>
             </div>
           </div>
         </div>
@@ -243,10 +269,24 @@ $ANTHROPIC_API_KEY  # Claude API Key</div>
               <div class="deploy-item"><span class="badge">Docker</span> Docker 沙箱 (隔离)</div>
               <div class="deploy-item"><span class="badge">K8s</span> Kubernetes 沙箱 (生产)</div>
             </div>
+            <div class="deploy-title" style="margin-top: 12px;">Sandbox Tools</div>
+            <div class="deploy-list">
+              <div class="deploy-item">bash → 命令执行</div>
+              <div class="deploy-item">ls → 文件列表</div>
+              <div class="deploy-item">read_file → 文件读取</div>
+              <div class="deploy-item">write_file → 文件写入</div>
+              <div class="deploy-item">str_replace → 文件替换</div>
+              <div class="deploy-item">glob → 文件模式搜索</div>
+              <div class="deploy-item">grep → 内容正则搜索</div>
+            </div>
             <div class="cmd-block"># config.yaml
 sandbox:
   use: deerflow.sandbox.local:LocalSandboxProvider
   allow_host_bash: false</div>
+            <div class="deploy-desc" style="margin-top: 8px;">
+              <span class="badge badge-solid">安全</span>
+              security.py 门控 bash 执行 · file_operation_lock.py 使用 WeakValueDictionary 防止内存泄漏
+            </div>
           </div>
         </div>
       </div>
@@ -283,7 +323,33 @@ sandbox:
 memory:
   enabled: true
   storage_path: memory.json
-  debounce_seconds: 30</div>
+  debounce_seconds: 30
+
+circuit_breaker:
+  failure_threshold: 5
+  recovery_timeout_sec: 60
+
+guardrails:
+  enabled: false
+  provider: AllowlistProvider
+
+checkpointer:
+  type: sqlite
+  connection_string: checkpoints.db
+
+channels:
+  discord: { ... }
+  wechat: { ... }
+  wecom: { ... }
+
+tool_search:
+  enabled: false
+
+skill_evolution:
+  enabled: false
+
+uploads:
+  pdf_converter: auto</div>
           </div>
           <div class="deploy-box">
             <div class="deploy-title">extensions_config.json</div>

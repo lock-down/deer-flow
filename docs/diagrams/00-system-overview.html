@@ -87,7 +87,11 @@
             <strong>Sandbox</strong>: 代码执行隔离<br>
             <strong>Memory</strong>: 用户记忆持久化<br>
             <strong>MCP</strong>: 工具协议集成<br>
-            <strong>Skills</strong>: 可扩展技能系统
+            <strong>Skills</strong>: 可扩展技能系统<br>
+            <strong>Guardrails</strong>: Pre-tool-call 授权<br>
+            <strong>Circuit Breaker</strong>: 速率限制保护<br>
+            <strong>Checkpointer</strong>: 状态持久化<br>
+            <strong>Streamdown</strong>: 流式 Markdown 渲染
           </div>
         </div>
         <div class="overview-box">
@@ -96,7 +100,9 @@
             <strong>Harness/App 分离</strong>: 可发布框架 vs 应用代码<br>
             <strong>中间件链</strong>: 按顺序执行的处理层<br>
             <strong>TDD</strong>: 测试驱动开发强制<br>
-            <strong>统一入口</strong>: Nginx 反向代理
+            <strong>统一入口</strong>: Nginx 反向代理<br>
+            <strong>Gateway Mode</strong>: 嵌入式运行时选项<br>
+            <strong>Config Versioning</strong>: Schema 升级追踪
           </div>
         </div>
       </div>
@@ -174,6 +180,9 @@
             <div class="layer-item"><div class="layer-item-name">Memory</div></div>
             <div class="layer-item"><div class="layer-item-name">MCP</div></div>
             <div class="layer-item"><div class="layer-item-name">Skills</div></div>
+            <div class="layer-item"><div class="layer-item-name">Guardrails</div></div>
+            <div class="layer-item"><div class="layer-item-name">Runtime (StreamBridge)</div></div>
+            <div class="layer-item"><div class="layer-item-name">Tracing</div></div>
           </div>
         </div>
 
@@ -184,6 +193,7 @@
             <div class="layer-item"><div class="layer-item-name">Memory.json</div></div>
             <div class="layer-item"><div class="layer-item-name">Thread Data</div></div>
             <div class="layer-item"><div class="layer-item-name">Artifacts</div></div>
+            <div class="layer-item"><div class="layer-item-name">Uploads (PDF/PPT/Word)</div></div>
           </div>
         </div>
       </div>
@@ -196,21 +206,29 @@
             <div class="footer-content">make dev → 启动所有服务
 make stop → 停止服务
 make test → 运行测试
-make lint → 代码检查</div>
+make lint → 代码检查
+make setup → 交互式设置向导
+make doctor → 检查配置和系统
+make config-upgrade → 合并配置新字段
+make dev-pro → 网关模式开发
+make docker-start → Docker 开发环境</div>
           </div>
           <div class="footer-box">
             <div class="footer-title">Entry Points</div>
             <div class="footer-content">本地: http://localhost:2026
 LangGraph: :2024
 Gateway: :8001
-Frontend: :3000</div>
+Frontend: :3000
+网关模式: Gateway :8001 (嵌入 Agent Runtime)</div>
           </div>
           <div class="footer-box">
             <div class="footer-title">Key Files</div>
             <div class="footer-content">config.yaml → 应用配置
 extensions_config.json → MCP/Skills
 langgraph.json → Agent 入口
-memory.json → 用户记忆</div>
+memory.json → 用户记忆
+config.example.yaml → 配置模板
+Makefile → 开发命令集</div>
           </div>
           <div class="footer-box">
             <div class="footer-title">Docs</div>

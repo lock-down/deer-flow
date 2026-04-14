@@ -12,22 +12,35 @@ DeerFlow is a full-stack "super agent harness" that orchestrates sub-agents, mem
 - Local dev entrypoint: `make dev` starts all services on `http://localhost:2026`
 
 **Architecture**:
-- **LangGraph Server** (port 2024): Agent runtime and workflow execution
-- **Gateway API** (port 8001): REST API for models, MCP, skills, memory, artifacts, uploads
+- **LangGraph Server** (port 2024): Agent runtime and workflow execution (standard mode)
+- **Gateway API** (port 8001): REST API for models, MCP, skills, memory, artifacts, uploads, agents, channels
 - **Frontend** (port 3000): Next.js web interface
 - **Nginx** (port 2026): Unified reverse proxy entry point
+
+**Runtime Modes**:
+- **Standard mode** (`make dev`): LangGraph Server handles agent execution. 4 processes total.
+- **Gateway mode** (`make dev-pro`, experimental): Agent runtime embedded in Gateway via `RunManager` + `StreamBridge`. 3 processes, no LangGraph Server.
 
 ## Commands
 
 ### Root Directory (Full Application)
 
 ```bash
-make check      # Check system requirements (Node 22+, pnpm, uv, nginx)
-make install    # Install all dependencies (frontend + backend)
-make config     # Generate config.yaml from template (first-time setup only)
-make dev        # Start all services with hot-reloading
-make stop       # Stop all running services
-make clean      # Stop services and clean temporary files
+make check          # Check system requirements (Node 22+, pnpm, uv, nginx)
+make install        # Install all dependencies (frontend + backend)
+make config         # Generate config.yaml from template (first-time setup only)
+make config-upgrade # Merge new fields from config.example.yaml into config.yaml
+make setup          # Interactive setup wizard
+make doctor         # Check config and system status
+make dev            # Start all services (standard mode) with hot-reloading
+make dev-pro        # Start all services (Gateway mode, experimental)
+make stop           # Stop all running services
+make clean          # Stop services and clean temporary files
+# Docker commands:
+make docker-start   # Start dev environment in Docker
+make docker-start-pro # Start dev in Docker (Gateway mode)
+make up             # Production Docker Compose deployment
+make up-pro         # Production Docker Compose (Gateway mode)
 ```
 
 ### Backend Directory
@@ -54,6 +67,7 @@ PYTHONPATH=. uv run pytest tests/test_<feature>.py -v
 cd frontend
 pnpm dev        # Dev server with Turbopack (port 3000)
 pnpm build      # Production build (requires BETTER_AUTH_SECRET)
+pnpm test       # Run unit tests with Vitest
 pnpm lint       # ESLint
 pnpm typecheck  # TypeScript check
 ```
@@ -75,30 +89,45 @@ The backend has two layers with strict dependency direction:
 
 ```
 deer-flow/
-├── config.yaml              # Main application config (models, tools, sandbox, memory)
+├── config.yaml              # Main application config (models, tools, sandbox, memory, channels)
 ├── extensions_config.json   # MCP servers and skills config
 ├── backend/
 │   ├── packages/harness/deerflow/   # Agent framework (deerflow.* imports)
-│   │   ├── agents/                  # Lead agent, middlewares, memory, thread state
-│   │   ├── sandbox/                 # Sandbox execution (local/docker)
-│   │   ├── subagents/               # Subagent delegation system
-│   │   ├── tools/                   # Built-in and community tools
-│   │   ├── mcp/                     # MCP integration
-│   │   ├── skills/                  # Skills loading and management
-│   │   └── client.py                # Embedded Python client
+│   │   ├── agents/                  # Lead agent, middlewares, memory, thread state, checkpointer, factory
+│   │   ├── sandbox/                 # Sandbox execution (local/docker), security, file locks, search tools
+│   │   ├── subagents/               # Subagent delegation system, per-agent model config
+│   │   ├── tools/                   # Built-in tools, ACP agent, tool search, setup agents
+│   │   ├── mcp/                     # MCP integration with OAuth support
+│   │   ├── skills/                  # Skills loading, management, security scanning, validation
+│   │   ├── models/                  # Model factory, providers (OpenAI, Claude, vLLM, DeepSeek, etc.), credential loader
+│   │   ├── guardrails/              # Guardrail middleware and providers (AllowlistProvider, OAP)
+│   │   ├── runtime/                 # Gateway mode runtime (RunManager, StreamBridge, store)
+│   │   ├── uploads/                 # Upload manager (PDF/PPT/Excel/Word conversion)
+│   │   ├── tracing/                 # Tracing factory
+│   │   ├── config/                  # Configuration modules (21 config schemas)
+│   │   ├── community/               # Community tools (tavily, jina_ai, firecrawl, ddg_search, exa, infoquest, image_search, aio_sandbox)
+│   │   └── client.py                # Embedded Python client (DeerFlowClient)
 │   └── app/                         # Application layer (app.* imports)
-│       ├── gateway/                 # FastAPI Gateway API
-│       └── channels/                # IM integrations (Feishu, Slack, Telegram)
+│       ├── gateway/                 # FastAPI Gateway API (14 routers)
+│       └── channels/                # IM integrations (Feishu, Slack, Telegram, Discord, WeChat, WeCom)
 ├── frontend/src/
-│   ├── app/                 # Next.js routes
-│   ├── components/          # UI components (ui/, workspace/, landing/)
-│   └── core/                # Business logic (threads, api, artifacts, skills)
+│   ├── app/                 # Next.js routes (workspace/chats, workspace/agents, blog, [lang]/docs)
+│   ├── components/          # UI components (ui/, ai-elements/, workspace/, landing/)
+│   ├── content/             # Blog/docs MDX content (en/, zh/)
+│   ├── core/                # Business logic (threads, api, agents, uploads, streamdown, ...)
+│   └── typings/             # TypeScript type definitions
 └── skills/                  # Agent skills (public/, custom/)
 ```
 
 ### Service Routing (Nginx)
 
+Standard mode:
 - `/api/langgraph/*` → LangGraph Server (2024)
+- `/api/*` (other) → Gateway API (8001)
+- `/` (non-API) → Frontend (3000)
+
+Gateway mode:
+- `/api/langgraph/*` → Gateway embedded runtime (8001)
 - `/api/*` (other) → Gateway API (8001)
 - `/` (non-API) → Frontend (3000)
 
@@ -109,7 +138,8 @@ deer-flow/
 Every new feature or bug fix MUST have unit tests. No exceptions.
 
 ```bash
-cd backend && make test   # Run before committing
+cd backend && make test   # Run backend tests before committing
+cd frontend && pnpm test  # Run frontend Vitest tests
 ```
 
 ### Pre-Commit Validation
@@ -122,23 +152,35 @@ Before submitting changes:
 
 ### Configuration
 
-- `config.yaml`: Models, sandbox, memory, tools, channels. Copy from `config.example.yaml`
+- `config.yaml`: Models, sandbox, memory, tools, channels, guardrails, circuit breaker, checkpointer. Copy from `config.example.yaml`
 - `extensions_config.json`: MCP servers and skills enabled state
 - Values starting with `$` are resolved as environment variables (e.g., `$OPENAI_API_KEY`)
+- `config_version` tracks schema version; bump in `config.example.yaml` when changing config schema
+- Run `make config-upgrade` to merge missing fields from `config.example.yaml` into existing `config.yaml`
 
 ## Key Patterns
 
 ### Backend
 
-- Middlewares execute in strict order (see `backend/CLAUDE.md` for full list)
-- Config caching with mtime-based auto-reload
+- Middlewares execute in strict order (18 middlewares, see `backend/CLAUDE.md` for full list)
+- Config caching with mtime-based auto-reload; `config_version` tracking with `make config-upgrade`
 - Sandbox virtual paths: `/mnt/user-data/` → `backend/.deer-flow/threads/{thread_id}/user-data/`
+- Sandbox tools: `bash`, `ls`, `read_file`, `write_file`, `str_replace`, `glob`, `grep`
+- Circuit breaker prevents persistent LLM rate-limit bans (`circuit_breaker` config)
+- Guardrails system with pluggable `GuardrailProvider` (AllowlistProvider, OAP policy providers)
+- Per-subagent model override in `config.yaml` (`subagents.agents[].model_name`)
+- Gateway mode (`make dev-pro`) embeds agent runtime in Gateway via `RunManager` + `StreamBridge`
+- Sandbox security module gates bash execution; `file_operation_lock.py` uses `WeakValueDictionary` to prevent memory leaks
 
 ### Frontend
 
 - Server Components by default, `"use client"` for interactive components
 - Thread hooks (`useThreadStream`, `useSubmitThread`) are the primary API
 - LangGraph client singleton via `getAPIClient()` in `core/api/`
+- Vitest test infrastructure (`pnpm test`, tests under `tests/unit/`)
+- Custom agents pages at `/workspace/agents/` with `core/agents/` API/hooks
+- Blog and i18n docs at `/blog/` and `/[lang]/docs/`
+- Streamdown (`core/streamdown/`) for streaming Markdown rendering
 
 ## Environment Requirements
 
@@ -150,10 +192,15 @@ Before submitting changes:
 
 ## Important Notes
 
-- `make config` aborts if `config.yaml` already exists — use only for first-time setup
+- `make config` aborts if `config.yaml` already exists — use `make config-upgrade` to merge new fields
+- `make setup` provides an interactive setup wizard for first-time configuration
+- `make doctor` checks config and system status
 - Proxy env vars can break frontend `pnpm install` — unset them if errors occur
 - Frontend `pnpm check` is unreliable; use `pnpm lint && pnpm typecheck` instead
 - In Docker Compose, IM channels use container service names (`http://langgraph:2024`)
+- Gateway mode (`make dev-pro`) runs 3 processes instead of 4 (no LangGraph Server)
+- Supported IM channels: Feishu, Slack, Telegram, Discord, WeChat, WeCom
+- CLI authentication (`~/.claude`, `~/.codex`) auto-mounted in Docker for credential loader
 
 ## Detailed Documentation
 

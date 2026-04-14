@@ -176,14 +176,20 @@
               <div class="middleware-item">2. UploadsMiddleware</div>
               <div class="middleware-item">3. SandboxMiddleware</div>
               <div class="middleware-item">4. DanglingToolCallMiddleware</div>
-              <div class="middleware-item">5. SummarizationMiddleware</div>
-              <div class="middleware-item">6. TodoMiddleware</div>
-              <div class="middleware-item">7. TitleMiddleware</div>
-              <div class="middleware-item">8. MemoryMiddleware</div>
-              <div class="middleware-item">9. ViewImageMiddleware</div>
-              <div class="middleware-item">10. SubagentLimitMiddleware</div>
-              <div class="middleware-item">11. LoopDetectionMiddleware</div>
-              <div class="middleware-item active">12. ClarificationMiddleware</div>
+              <div class="middleware-item">5. LLMErrorHandlingMiddleware</div>
+              <div class="middleware-item">6. GuardrailMiddleware</div>
+              <div class="middleware-item">7. SandboxAuditMiddleware</div>
+              <div class="middleware-item">8. ToolErrorHandlingMiddleware</div>
+              <div class="middleware-item">9. SummarizationMiddleware</div>
+              <div class="middleware-item">10. TodoListMiddleware</div>
+              <div class="middleware-item">11. TokenUsageMiddleware</div>
+              <div class="middleware-item">12. TitleMiddleware</div>
+              <div class="middleware-item">13. MemoryMiddleware</div>
+              <div class="middleware-item">14. ViewImageMiddleware</div>
+              <div class="middleware-item">15. DeferredToolFilterMiddleware</div>
+              <div class="middleware-item">16. SubagentLimitMiddleware</div>
+              <div class="middleware-item">17. LoopDetectionMiddleware</div>
+              <div class="middleware-item active">18. ClarificationMiddleware</div>
             </div>
           </div>
         </div>
@@ -284,6 +290,36 @@ end         → 流结束</div>
             <div class="step-name">MemoryUpdater.update_memory()</div>
             <div class="step-desc">调用 LLM 分析对话，提取用户信息、偏好、上下文，更新到 memory.json</div>
             <div class="step-file">backend/packages/harness/deerflow/agents/memory/updater.py</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Circuit Breaker -->
+      <div class="flow-section">
+        <div class="flow-title">5. Circuit Breaker 流程</div>
+        <div class="flow-diagram">
+          <div class="flow-box">
+            <div class="flow-box-name">Request</div>
+            <div class="flow-box-desc">LLM 请求</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">Circuit Breaker</div>
+            <div class="flow-box-desc">限流保护</div>
+          </div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">
+            <div class="flow-box-name">LLM Provider</div>
+            <div class="flow-box-desc">模型调用</div>
+          </div>
+        </div>
+
+        <div class="flow-step">
+          <div class="step-num">5.1</div>
+          <div class="step-content">
+            <div class="step-name">Circuit Breaker</div>
+            <div class="step-desc">防止持续的速率限制封禁，在 LLM 请求前进行检查，当检测到连续失败时自动熔断，保护系统稳定性</div>
+            <div class="step-file">backend/packages/harness/deerflow/config/circuit_breaker.py</div>
           </div>
         </div>
       </div>

@@ -32,32 +32,53 @@ deer-flow/
 │   │       └── deerflow/
 │   │           ├── agents/            # LangGraph agent system
 │   │           │   ├── lead_agent/    # Main agent (factory + system prompt)
-│   │           │   ├── middlewares/   # 10 middleware components
+│   │           │   ├── middlewares/   # 16 middleware files (18 middlewares total)
 │   │           │   ├── memory/        # Memory extraction, queue, prompts
+│   │           │   ├── checkpointer/  # State persistence (SQLite/PostgreSQL/memory)
+│   │           │   ├── factory.py      # Agent factory (create_deerflow_agent)
+│   │           │   ├── features.py     # RuntimeFeatures declarative feature flags
 │   │           │   └── thread_state.py # ThreadState schema
 │   │           ├── sandbox/           # Sandbox execution system
 │   │           │   ├── local/         # Local filesystem provider
 │   │           │   ├── sandbox.py     # Abstract Sandbox interface
 │   │           │   ├── tools.py       # bash, ls, read/write/str_replace
+│   │           │   ├── search.py      # glob, grep search tools
+│   │           │   ├── security.py    # Bash execution security gating
+│   │           │   ├── file_operation_lock.py  # WeakValueDictionary locks
+│   │           │   ├── exceptions.py  # Structured sandbox errors
+│   │           │   ├── sandbox_provider.py  # Provider lifecycle
 │   │           │   └── middleware.py  # Sandbox lifecycle management
 │   │           ├── subagents/         # Subagent delegation system
 │   │           │   ├── builtins/      # general-purpose, bash agents
+│   │           │   ├── config.py      # Per-agent model configuration
 │   │           │   ├── executor.py    # Background execution engine
 │   │           │   └── registry.py    # Agent registry
-│   │           ├── tools/builtins/    # Built-in tools (present_files, ask_clarification, view_image)
-│   │           ├── mcp/               # MCP integration (tools, cache, client)
+│   │           ├── tools/builtins/    # Built-in tools (present_files, ask_clarification, view_image, task, setup_agent, tool_search, invoke_acp_agent)
+│   │           ├── mcp/               # MCP integration (tools, cache, client, OAuth)
 │   │           ├── models/            # Model factory with thinking/vision support
-│   │           ├── skills/            # Skills discovery, loading, parsing
-│   │           ├── config/            # Configuration system (app, model, sandbox, tool, etc.)
-│   │           ├── community/         # Community tools (tavily, jina_ai, firecrawl, image_search, aio_sandbox)
+│   │           │   ├── factory.py     # create_chat_model()
+│   │           │   ├── claude_provider.py    # Anthropic Claude OAuth support
+│   │           │   ├── credential_loader.py  # CLI auth (~/.claude, ~/.codex)
+│   │           │   ├── openai_codex_provider.py  # Codex provider
+│   │           │   ├── vllm_provider.py       # vLLM reasoning models
+│   │           │   ├── patched_openai.py      # OpenAI with thinking preservation
+│   │           │   ├── patched_deepseek.py   # DeepSeek with thinking preservation
+│   │           │   └── patched_minimax.py    # MiniMax with thinking preservation
+│   │           ├── skills/            # Skills discovery, loading, parsing, security scanning, validation
+│   │           ├── guardrails/        # Guardrail system (AllowlistProvider, OAP, custom providers)
+│   │           ├── runtime/           # Gateway mode runtime (RunManager, StreamBridge, store)
+│   │           ├── uploads/           # Upload manager (PDF/PPT/Excel/Word conversion)
+│   │           ├── tracing/           # Tracing factory
+│   │           ├── config/            # Configuration system (21 config schemas)
+│   │           ├── community/         # Community tools (tavily, jina_ai, firecrawl, ddg_search, exa, infoquest, image_search, aio_sandbox)
 │   │           ├── reflection/        # Dynamic module loading (resolve_variable, resolve_class)
 │   │           ├── utils/             # Utilities (network, readability)
 │   │           └── client.py          # Embedded Python client (DeerFlowClient)
 │   ├── app/                   # Application layer (import: app.*)
 │   │   ├── gateway/           # FastAPI Gateway API
 │   │   │   ├── app.py         # FastAPI application
-│   │   │   └── routers/       # FastAPI route modules (models, mcp, memory, skills, uploads, threads, artifacts, agents, suggestions, channels)
-│   │   └── channels/          # IM platform integrations
+│   │   │   └── routers/       # FastAPI route modules (models, mcp, memory, skills, uploads, threads, artifacts, agents, suggestions, channels, runs, thread_runs, assistants_compat)
+│   │   └── channels/          # IM platform integrations (Feishu, Slack, Telegram, Discord, WeChat, WeCom)
 │   ├── tests/                 # Test suite
 │   └── docs/                  # Documentation
 ├── frontend/                   # Next.js frontend application
@@ -115,7 +136,7 @@ CI runs these regression tests for every pull request via [.github/workflows/bac
 The backend is split into two layers with a strict dependency direction:
 
 - **Harness** (`packages/harness/deerflow/`): Publishable agent framework package (`deerflow-harness`). Import prefix: `deerflow.*`. Contains agent orchestration, tools, sandbox, models, MCP, skills, config — everything needed to build and run agents.
-- **App** (`app/`): Unpublished application code. Import prefix: `app.*`. Contains the FastAPI Gateway API and IM channel integrations (Feishu, Slack, Telegram).
+- **App** (`app/`): Unpublished application code. Import prefix: `app.*`. Contains the FastAPI Gateway API and IM channel integrations (Feishu, Slack, Telegram, Discord, WeChat, WeCom).
 
 **Dependency rule**: App imports deerflow, but deerflow never imports app. This boundary is enforced by `tests/test_harness_boundary.py` which runs in CI.
 
@@ -222,6 +243,11 @@ FastAPI application on port 8001 with health check at `GET /health`.
 | **Threads** (`/api/threads/{id}`) | `DELETE /` - remove DeerFlow-managed local thread data after LangGraph thread deletion; unexpected failures are logged server-side and return a generic 500 detail |
 | **Artifacts** (`/api/threads/{id}/artifacts`) | `GET /{path}` - serve artifacts; active content types (`text/html`, `application/xhtml+xml`, `image/svg+xml`) are always forced as download attachments to reduce XSS risk; `?download=true` still forces download for other file types |
 | **Suggestions** (`/api/threads/{id}/suggestions`) | `POST /` - generate follow-up questions; rich list/block model content is normalized before JSON parsing |
+| **Agents** (`/api/agents`) | `GET /` - list custom agents; `POST /` - create agent |
+| **Channels** (`/api/channels`) | Channel management endpoints |
+| **Runs** (`/api/runs/stream`) | `POST /` - stateless streaming run (Gateway mode) |
+| **Thread Runs** (`/api/threads/{id}/runs`) | `POST /` - create scoped run |
+| **Assistants Compat** (`/api/langgraph-compat`) | LangGraph assistants API compatibility |
 
 Proxied through nginx: `/api/langgraph/*` → LangGraph, all other `/api/*` → Gateway.
 
@@ -239,12 +265,18 @@ Proxied through nginx: `/api/langgraph/*` → LangGraph, all other `/api/*` → 
 - Translation: `replace_virtual_path()` / `replace_virtual_paths_in_command()`
 - Detection: `is_local_sandbox()` checks `sandbox_id == "local"`
 
-**Sandbox Tools** (in `packages/harness/deerflow/sandbox/tools.py`):
+**Sandbox Tools** (in `packages/harness/deerflow/sandbox/tools.py` and `packages/harness/deerflow/sandbox/search.py`):
 - `bash` - Execute commands with path translation and error handling
 - `ls` - Directory listing (tree format, max 2 levels)
 - `read_file` - Read file contents with optional line range
 - `write_file` - Write/append to files, creates directories
 - `str_replace` - Substring replacement (single or all occurrences); same-path serialization is scoped to `(sandbox.id, path)` so isolated sandboxes do not contend on identical virtual paths inside one process
+- `glob` - Search for files matching a pattern (in `search.py`)
+- `grep` - Search file contents with a regex pattern (in `search.py`)
+
+**Sandbox Security** (`packages/harness/deerflow/sandbox/security.py`):
+- Gates bash execution in `LocalSandbox` based on `allow_host_bash` config
+- `file_operation_lock.py` uses `WeakValueDictionary` to prevent memory leaks across thread-isolated operations
 
 ### Subagent System (`packages/harness/deerflow/subagents/`)
 
@@ -270,6 +302,10 @@ Proxied through nginx: `/api/langgraph/*` → LangGraph, all other `/api/*` → 
 - `tavily/` - Web search (5 results default) and web fetch (4KB limit)
 - `jina_ai/` - Web fetch via Jina reader API with readability extraction
 - `firecrawl/` - Web scraping via Firecrawl API
+- `ddg_search/` - DuckDuckGo search
+- `exa/` - Exa search and web scraping
+- `infoquest/` - InfoQuest search
+- `image_search/` - Image search via DuckDuckGo
 
 **ACP agent tools**:
 - `invoke_acp_agent` - Invokes external ACP-compatible agents from `config.yaml`
@@ -312,7 +348,7 @@ Proxied through nginx: `/api/langgraph/*` → LangGraph, all other `/api/*` → 
 
 ### IM Channels System (`app/channels/`)
 
-Bridges external messaging platforms (Feishu, Slack, Telegram) to the DeerFlow agent via the LangGraph Server.
+Bridges external messaging platforms (Feishu, Slack, Telegram, Discord, WeChat, WeCom) to the DeerFlow agent via the LangGraph Server.
 
 **Architecture**: Channels communicate with the LangGraph Server through `langgraph-sdk` HTTP client (same as the frontend), ensuring threads are created and managed server-side.
 
@@ -322,7 +358,7 @@ Bridges external messaging platforms (Feishu, Slack, Telegram) to the DeerFlow a
 - `manager.py` - Core dispatcher: creates threads via `client.threads.create()`, routes commands, keeps Slack/Telegram on `client.runs.wait()`, and uses `client.runs.stream(["messages-tuple", "values"])` for Feishu incremental outbound updates
 - `base.py` - Abstract `Channel` base class (start/stop/send lifecycle)
 - `service.py` - Manages lifecycle of all configured channels from `config.yaml`
-- `slack.py` / `feishu.py` / `telegram.py` - Platform-specific implementations (`feishu.py` tracks the running card `message_id` in memory and patches the same card in place)
+- `slack.py` / `feishu.py` / `telegram.py` / `discord.py` / `wechat.py` / `wecom.py` - Platform-specific implementations (`feishu.py` tracks the running card `message_id` in memory and patches the same card in place)
 
 **Message Flow**:
 1. External platform -> Channel impl -> `MessageBus.publish_inbound()`
@@ -338,7 +374,7 @@ Bridges external messaging platforms (Feishu, Slack, Telegram) to the DeerFlow a
 - `langgraph_url` - LangGraph Server URL (default: `http://localhost:2024`)
 - `gateway_url` - Gateway API URL for auxiliary commands (default: `http://localhost:8001`)
 - In Docker Compose, IM channels run inside the `gateway` container, so `localhost` points back to that container. Use `http://langgraph:2024` / `http://gateway:8001`, or set `DEER_FLOW_CHANNELS_LANGGRAPH_URL` / `DEER_FLOW_CHANNELS_GATEWAY_URL`.
-- Per-channel configs: `feishu` (app_id, app_secret), `slack` (bot_token, app_token), `telegram` (bot_token)
+- Per-channel configs: `feishu` (app_id, app_secret), `slack` (bot_token, app_token), `telegram` (bot_token), `discord` (bot_token, channel_id), `wechat` (app_id, app_secret, token, encoding_aes_key), `wecom` (corp_id, agent_id, secret, token, encoding_aes_key)
 
 ### Memory System (`packages/harness/deerflow/agents/memory/`)
 
@@ -377,22 +413,65 @@ Focused regression coverage for the updater lives in `backend/tests/test_memory_
 ### Config Schema
 
 **`config.yaml`** key sections:
-- `models[]` - LLM configs with `use` class path, `supports_thinking`, `supports_vision`, provider-specific fields
+- `models[]` - LLM configs with `use` class path, `supports_thinking`, `supports_vision`, provider-specific fields, `when_thinking_disabled` overrides
 - vLLM reasoning models should use `deerflow.models.vllm_provider:VllmChatModel`; for Qwen-style parsers prefer `when_thinking_enabled.extra_body.chat_template_kwargs.enable_thinking`, and DeerFlow will also normalize the older `thinking` alias
 - `tools[]` - Tool configs with `use` variable path and `group`
 - `tool_groups[]` - Logical groupings for tools
+- `tool_search` - Lazy tool discovery (`enabled`, `model_name`)
 - `sandbox.use` - Sandbox provider class path
+- `sandbox.allow_host_bash` - Allow host bash execution in LocalSandbox
+- `sandbox.mounts` - Additional sandbox mount configurations
+- `sandbox.*_output_max_chars` - Tool output truncation limits
 - `skills.path` / `skills.container_path` - Host and container paths to skills directory
+- `skill_evolution` - Skill self-evolution (`enabled`, `moderation_model_name`)
 - `title` - Auto-title generation (enabled, max_words, max_chars, prompt_template)
 - `summarization` - Context summarization (enabled, trigger conditions, keep policy)
 - `subagents.enabled` - Master switch for subagent delegation
+- `subagents.agents[]` - Per-subagent config with optional `model_name` override
 - `memory` - Memory system (enabled, storage_path, debounce_seconds, model_name, max_facts, fact_confidence_threshold, injection_enabled, max_injection_tokens)
+- `guardrails` - Guardrail system (`enabled`, `provider` with AllowlistProvider, OAP, or custom)
+- `circuit_breaker` - Circuit breaker (`failure_threshold`, `recovery_timeout_sec`) to prevent persistent LLM rate-limit bans
+- `checkpointer` - State persistence (`type: sqlite|postgresql|memory`, `connection_string`)
+- `uploads.pdf_converter` - PDF conversion backend (`auto|pymupdf4llm|markitdown`)
+- `tracing` - Tracing configuration
+- `channels.session` - Channel-level session defaults (`assistant_id`, `config`, `context`)
+- `acp_agents` - ACP agent configurations
 
 **`extensions_config.json`**:
 - `mcpServers` - Map of server name → config (enabled, type, command, args, env, url, headers, oauth, description)
 - `skills` - Map of skill name → state (enabled)
 
 Both can be modified at runtime via Gateway API endpoints or `DeerFlowClient` methods.
+
+### Guardrails System (`packages/harness/deerflow/guardrails/`)
+
+Pluggable pre-tool-call authorization system:
+- **GuardrailMiddleware** (in `guardrails/middleware.py`) - Evaluates each tool call before execution
+- **AllowlistProvider** (in `guardrails/builtin.py`) - Zero-dependency allowlist-based guardrail
+- **OAP Policy Providers** - External policy servers (e.g., `aport-agent-guardrails`)
+- **Custom Providers** - Implement `GuardrailProvider` protocol
+- Returns error `ToolMessage` on deny; configured via `guardrails` section in `config.yaml`
+- See [docs/GUARDRAILS.md](docs/GUARDRAILS.md) for setup, usage, and provider implementation
+
+### Circuit Breaker
+
+Prevents persistent LLM rate-limit bans by temporarily blocking requests to failing providers:
+- Configured via `circuit_breaker` in `config.yaml` (`failure_threshold`, `recovery_timeout_sec`)
+- Automatically trips when consecutive failures exceed threshold
+- Recovers after timeout period
+
+### Upload Manager (`packages/harness/deerflow/uploads/`)
+
+File upload with automatic document conversion:
+- `manager.py` - Handles PDF, PPT, Excel, Word document conversion via `markitdown`
+- Configurable PDF converter: `uploads.pdf_converter` (`auto`, `pymupdf4llm`, `markitdown`)
+- Thread-isolated storage
+
+### Tracing (`packages/harness/deerflow/tracing/`)
+
+Lightweight tracing factory module:
+- `factory.py` - Creates tracing providers from config
+- Configured via `tracing` section in `config.yaml`
 
 ### Embedded Client (`packages/harness/deerflow/client.py`)
 

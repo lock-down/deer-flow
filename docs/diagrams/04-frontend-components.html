@@ -78,9 +78,9 @@
         <div class="layer-label">APP ROUTES / 路由层</div>
         <div class="component-grid">
           <div class="component-box">
-            <div class="component-name">[lang]/</div>
-            <div class="component-path">app/[lang]/</div>
-            <div class="component-desc">国际化路由</div>
+            <div class="component-name">[lang]/docs/</div>
+            <div class="component-path">app/[lang]/docs/</div>
+            <div class="component-desc">国际化文档路由</div>
             <div class="component-items">
               <div class="item">workspace/chats/[thread_id]/ → 聊天页面</div>
             </div>
@@ -94,6 +94,21 @@
             <div class="component-name">workspace/</div>
             <div class="component-path">app/workspace/</div>
             <div class="component-desc">工作区入口</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">workspace/agents/</div>
+            <div class="component-path">app/workspace/agents/</div>
+            <div class="component-desc">自定义代理页面</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">workspace/agents/new</div>
+            <div class="component-path">app/workspace/agents/new/</div>
+            <div class="component-desc">创建代理</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">blog/</div>
+            <div class="component-path">app/blog/</div>
+            <div class="component-desc">博客内容</div>
           </div>
         </div>
       </div>
@@ -133,6 +148,9 @@
             <div class="component-items">
               <div class="item">input-box.tsx → 消息输入框</div>
               <div class="item">todo-list.tsx → 任务列表</div>
+              <div class="item">agents/ → 代理管理组件</div>
+              <div class="item">citations/ → 引用组件</div>
+              <div class="item">settings/ → 设置组件</div>
               <div class="item">artifacts/ → 工件展示 (代码、图片、Markdown)</div>
               <div class="item">messages/ → 消息组件 (气泡、工具调用、思考过程)</div>
             </div>
@@ -206,7 +224,56 @@
           <div class="component-box">
             <div class="component-name">uploads/</div>
             <div class="component-path">core/uploads/</div>
-            <div class="component-desc">文件上传</div>
+            <div class="component-desc">文件上传管理</div>
+          </div>
+        </div>
+
+        <div class="component-grid" style="margin-top: 12px;">
+          <div class="component-box">
+            <div class="component-name">agents/</div>
+            <div class="component-path">core/agents/</div>
+            <div class="component-desc">自定义代理 API + hooks</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">streamdown/</div>
+            <div class="component-path">core/streamdown/</div>
+            <div class="component-desc">流式 Markdown 渲染</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">blog/</div>
+            <div class="component-path">core/blog/</div>
+            <div class="component-desc">博客数据管理</div>
+          </div>
+        </div>
+
+        <div class="component-grid" style="margin-top: 12px;">
+          <div class="component-box">
+            <div class="component-name">tasks/</div>
+            <div class="component-path">core/tasks/</div>
+            <div class="component-desc">任务状态管理</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">todos/</div>
+            <div class="component-path">core/todos/</div>
+            <div class="component-desc">Todo 管理</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">tools/</div>
+            <div class="component-path">core/tools/</div>
+            <div class="component-desc">工具工具</div>
+          </div>
+        </div>
+
+        <div class="component-grid" style="margin-top: 12px;">
+          <div class="component-box">
+            <div class="component-name">notification/</div>
+            <div class="component-path">core/notification/</div>
+            <div class="component-desc">通知钩子</div>
+          </div>
+          <div class="component-box">
+            <div class="component-name">config/</div>
+            <div class="component-path">core/config/</div>
+            <div class="component-desc">配置管理</div>
           </div>
         </div>
       </div>
@@ -284,17 +351,24 @@
         <div class="layer-label">DIRECTORY STRUCTURE</div>
         <div class="tree-view">frontend/src/
 ├── app/                     # Next.js 路由
-│   ├── [lang]/              # 国际化路由
+│   ├── [lang]/docs/         # 国际化文档路由
 │   │   └── workspace/
 │   │       └── chats/[thread_id]/
 │   ├── api/                 # API 路由
-│   └── workspace/           # 工作区入口
+│   ├── workspace/           # 工作区入口
+│   ├── workspace/agents/    # 自定义代理
+│   ├── workspace/agents/new/
+│   ├── blog/                # 博客
+│   └── [lang]/docs/         # i18n 文档
 ├── components/
 │   ├── ui/                  # Shadcn UI
 │   ├── ai-elements/         # Vercel AI SDK
 │   ├── workspace/           # 聊天组件
 │   │   ├── input-box.tsx
 │   │   ├── todo-list.tsx
+│   │   ├── agents/
+│   │   ├── citations/
+│   │   ├── settings/
 │   │   ├── artifacts/
 │   │   └── messages/
 │   └── landing/             # 落地页
@@ -307,7 +381,19 @@
 │   ├── memory/
 │   ├── models/
 │   ├── skills/
-│   └── uploads/
+│   ├── uploads/
+│   ├── agents/
+│   ├── streamdown/
+│   ├── blog/
+│   ├── tasks/
+│   ├── todos/
+│   ├── tools/
+│   ├── notification/
+│   └── configs/
+├── content/                 # 博客/文档 MDX
+│   ├── en/
+│   └── zh/
+├── typings/                 # 类型定义
 ├── hooks/                   # 共享 Hooks
 ├── lib/                     # 工具库 (cn)
 └── styles/                  # Tailwind v4</div>

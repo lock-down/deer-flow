@@ -118,6 +118,11 @@
             <td class="endpoint-desc">自定义 Agent 管理</td>
           </tr>
           <tr>
+            <td>/api/channels</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">渠道管理</td>
+          </tr>
+          <tr>
             <td>/api/threads/{id}/uploads</td>
             <td><span class="method-badge post">POST</span><span class="method-badge get">GET</span></td>
             <td class="endpoint-desc">线程文件上传管理</td>
@@ -138,19 +143,24 @@
             <td class="endpoint-desc">删除线程数据</td>
           </tr>
           <tr>
-            <td>/api/threads/{id}/runs</td>
-            <td><span class="method-badge post">POST</span></td>
-            <td class="endpoint-desc">创建 Agent 运行</td>
-          </tr>
-          <tr>
             <td>/api/threads/{id}/state</td>
             <td><span class="method-badge get">GET</span><span class="method-badge post">POST</span></td>
             <td class="endpoint-desc">获取/更新线程状态</td>
           </tr>
           <tr>
+            <td>/api/threads/{id}/runs</td>
+            <td><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">创建线程运行</td>
+          </tr>
+          <tr>
             <td>/api/runs/stream</td>
             <td><span class="method-badge post">POST</span></td>
             <td class="endpoint-desc">无状态流式运行</td>
+          </tr>
+          <tr>
+            <td>/api/threads/{id}/history</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">获取线程历史</td>
           </tr>
           <tr>
             <td>/health</td>
@@ -229,6 +239,61 @@
         </table>
       </div>
 
+      <!-- Assistants Compat API -->
+      <div class="api-section">
+        <div class="section-divider"></div>
+        <div class="api-header">
+          <span class="api-label">Assistants Compat API</span>
+          <span class="api-desc">LangGraph assistants API 兼容层</span>
+        </div>
+
+        <table class="endpoint-table">
+          <tr><th>ENDPOINT</th><th>METHOD</th><th>DESCRIPTION</th></tr>
+          <tr>
+            <td>/api/langgraph-compat/assistants</td>
+            <td><span class="method-badge get">GET</span></td>
+            <td class="endpoint-desc">助手列表</td>
+          </tr>
+          <tr>
+            <td>/api/langgraph-compat/threads</td>
+            <td><span class="method-badge post">POST</span></td>
+            <td class="endpoint-desc">创建线程</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Channel Management -->
+      <div class="api-section">
+        <div class="section-divider"></div>
+        <div class="api-header">
+          <span class="api-label">Channel Management</span>
+          <span class="api-desc">IM 渠道集成</span>
+        </div>
+
+        <div class="two-col">
+          <table class="endpoint-table">
+            <tr><th>CHANNEL</th><th>PROTOCOL</th></tr>
+            <tr><td>Feishu</td><td class="endpoint-desc">飞书 / Lark</td></tr>
+            <tr><td>Slack</td><td class="endpoint-desc">Slack App</td></tr>
+            <tr><td>Telegram</td><td class="endpoint-desc">Telegram Bot</td></tr>
+            <tr><td>Discord</td><td class="endpoint-desc">Discord Bot</td></tr>
+            <tr><td>WeChat</td><td class="endpoint-desc">微信公众号</td></tr>
+            <tr><td>WeCom</td><td class="endpoint-desc">企业微信</td></tr>
+          </table>
+
+          <div class="route-note">
+            <div class="route-note-title">Supported Commands</div>
+            <div class="route-note-content">
+              /new — 新建对话线程
+              /status — 查看运行状态
+              /models — 切换模型
+              /memory — 管理记忆
+              /help — 查看帮助
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Provisioner API -->
       <div class="api-section">
         <div class="section-divider"></div>
@@ -297,14 +362,18 @@
           <tr><th>FILE</th><th>ENDPOINTS</th></tr>
           <tr><td>routers/agents.py</td><td class="endpoint-desc">/api/agents</td></tr>
           <tr><td>routers/artifacts.py</td><td class="endpoint-desc">/api/threads/{id}/artifacts</td></tr>
+          <tr><td>routers/channels.py</td><td class="endpoint-desc">/api/channels</td></tr>
           <tr><td>routers/memory.py</td><td class="endpoint-desc">/api/memory</td></tr>
           <tr><td>routers/mcp.py</td><td class="endpoint-desc">/api/mcp</td></tr>
           <tr><td>routers/models.py</td><td class="endpoint-desc">/api/models</td></tr>
           <tr><td>routers/skills.py</td><td class="endpoint-desc">/api/skills</td></tr>
-          <tr><td>routers/threads.py</td><td class="endpoint-desc">/api/threads, /api/threads/{id}</td></tr>
+          <tr><td>routers/threads.py</td><td class="endpoint-desc">/api/threads, /api/threads/{id}, /api/threads/{id}/history</td></tr>
           <tr><td>routers/uploads.py</td><td class="endpoint-desc">/api/threads/{id}/uploads</td></tr>
           <tr><td>routers/runs.py</td><td class="endpoint-desc">/api/runs/stream</td></tr>
-          <tr><td>routers/thread_runs.py</td><td class="endpoint-desc">/api/threads/{id}/runs</td></tr>
+          <tr><td>routers/thread_runs.py</td><td class="endpoint-desc">/api/threads/{id}/runs, /api/threads/{id}/state</td></tr>
+          <tr><td>routers/assistants_compat.py</td><td class="endpoint-desc">/api/langgraph-compat/*</td></tr>
+          <tr><td>routers/health.py</td><td class="endpoint-desc">/health</td></tr>
+          <tr><td>routers/docs.py</td><td class="endpoint-desc">/docs, /redoc, /openapi.json</td></tr>
         </table>
       </div>
     </div>

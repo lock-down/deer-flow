@@ -27,24 +27,28 @@ Unit tests live under `tests/unit/` and mirror the `src/` layout (e.g., `tests/u
 
 ```
 Frontend (Next.js) ──▶ LangGraph SDK ──▶ LangGraph Backend (lead_agent)
-                                              ├── Sub-Agents
-                                              └── Tools & Skills
+                                               ├── Sub-Agents
+                                               └── Tools & Skills
 ```
 
 The frontend is a stateful chat application. Users create **threads** (conversations), send messages, and receive streamed AI responses. The backend orchestrates agents that can produce **artifacts** (files/code) and **todos**.
 
 ### Source Layout (`src/`)
 
-- **`app/`** — Next.js App Router. Routes: `/` (landing), `/workspace/chats/[thread_id]` (chat).
+- **`app/`** — Next.js App Router. Routes: `/` (landing), `/workspace/chats/[thread_id]` (chat), `/workspace/agents/[agent_name]` (custom agents), `/workspace/agents/new` (create agent), `/blog` (blog posts), `/[lang]/docs` (i18n docs), `/api/auth` (better-auth), `/api/memory` (memory API).
 - **`components/`** — React components split into:
   - `ui/` — Shadcn UI primitives (auto-generated, ESLint-ignored)
   - `ai-elements/` — Vercel AI SDK elements (auto-generated, ESLint-ignored)
-  - `workspace/` — Chat page components (messages, artifacts, settings)
+  - `workspace/` — Chat page components (messages, artifacts, settings, agents, citations)
   - `landing/` — Landing page sections
 - **`core/`** — Business logic, the heart of the app:
   - `threads/` — Thread creation, streaming, state management (hooks + types)
   - `api/` — LangGraph client singleton
   - `artifacts/` — Artifact loading and caching
+  - `agents/` — Custom agent API, hooks, types
+  - `uploads/` — File upload API, validation, hooks, prompt-input-files
+  - `streamdown/` — Streaming Markdown rendering
+  - `blog/` — Blog data and content management
   - `i18n/` — Internationalization (en-US, zh-CN)
   - `settings/` — User preferences in localStorage
   - `memory/` — Persistent user memory system
@@ -52,10 +56,19 @@ The frontend is a stateful chat application. Users create **threads** (conversat
   - `messages/` — Message processing and transformation
   - `mcp/` — Model Context Protocol integration
   - `models/` — TypeScript types and data models
+  - `tasks/` — Task status context and types
+  - `todos/` — Todo management
+  - `tools/` — Tool utilities
+  - `notification/` — Notification hooks
+  - `rehype/` — Rehype plugins
+  - `config/` — Configuration management
+  - `utils/` — General utilities
+- **`content/`** — Blog and docs MDX content (en/, zh/)
 - **`hooks/`** — Shared React hooks
 - **`lib/`** — Utilities (`cn()` from clsx + tailwind-merge)
 - **`server/`** — Server-side code (better-auth, not yet active)
 - **`styles/`** — Global CSS with Tailwind v4 `@import` syntax and CSS variables for theming
+- **`typings/`** — TypeScript type definitions
 
 ### Data Flow
 
@@ -70,6 +83,8 @@ The frontend is a stateful chat application. Users create **threads** (conversat
 - **Thread hooks** (`useThreadStream`, `useSubmitThread`, `useThreads`) are the primary API interface
 - **LangGraph client** is a singleton obtained via `getAPIClient()` in `core/api/`
 - **Environment validation** uses `@t3-oss/env-nextjs` with Zod schemas (`src/env.js`). Skip with `SKIP_ENV_VALIDATION=1`
+- **Custom agents** at `/workspace/agents/` with API hooks in `core/agents/`
+- **Streamdown** (`core/streamdown/`) for streaming Markdown rendering
 
 ## Code Style
 

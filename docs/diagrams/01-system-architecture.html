@@ -95,7 +95,8 @@
           <div class="service-box">
             <div class="service-name">LangGraph Server</div>
             <span class="service-port">:2024</span>
-            <div class="service-desc">Agent 运行时<br>工作流引擎 + 状态管理</div>
+            <div class="service-desc">Agent 运行时<br>(标准模式)<br>工作流引擎 + 状态管理</div>
+            <span class="badge">Gateway模式可选</span>
           </div>
           <div class="service-box">
             <div class="service-name">Provisioner</div>
@@ -125,6 +126,18 @@
             <div class="service-name">MCP Tools</div>
             <div class="service-desc">Model Context Protocol<br>工具集成层</div>
           </div>
+          <div class="service-box">
+            <div class="service-name">Guardrails</div>
+            <div class="service-desc">护栏系统<br>可插拔授权提供者</div>
+          </div>
+          <div class="service-box">
+            <div class="service-name">Runtime</div>
+            <div class="service-desc">运行时<br>StreamBridge + RunManager</div>
+          </div>
+          <div class="service-box">
+            <div class="service-name">Tracing</div>
+            <div class="service-desc">追踪<br>Tracing Factory</div>
+          </div>
         </div>
       </div>
 
@@ -140,6 +153,10 @@
             <div class="service-name">Memory Store</div>
             <div class="service-desc">memory.json<br>用户记忆 + 历史摘要</div>
           </div>
+          <div class="service-box half-width">
+            <div class="service-name">Uploads</div>
+            <div class="service-desc">文件上传管理<br>PDF/PPT/Excel/Word 转换</div>
+          </div>
         </div>
       </div>
 
@@ -147,6 +164,11 @@
       <div class="router-section">
         <div class="layer-label">Nginx Routing Rules / 路由规则</div>
         <div class="route-grid">
+          <div class="route-item">
+            <span class="route-path">/api/langgraph/* (Gateway模式)</span>
+            <span class="route-arrow">→</span>
+            <span class="route-target">Gateway :8001 (嵌入运行时)</span>
+          </div>
           <div class="route-item">
             <span class="route-path">/api/langgraph/*</span>
             <span class="route-arrow">→</span>

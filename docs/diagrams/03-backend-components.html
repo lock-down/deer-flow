@@ -92,10 +92,13 @@
             <div class="module-components">
               <div class="component-item">lead_agent/agent.py → make_lead_agent()</div>
               <div class="component-item">lead_agent/prompt.py → apply_prompt_template()</div>
-              <div class="component-item">middlewares/*.py → 12个中间件组件</div>
+              <div class="component-item">middlewares/*.py → 16个中间件文件 (18个中间件)</div>
               <div class="component-item">memory/updater.py → MemoryUpdater</div>
               <div class="component-item">subagents/ → 子代理注册与执行</div>
               <div class="component-item">thread_state.py → ThreadState 状态定义</div>
+              <div class="component-item">checkpointer/ → 状态持久化 (SQLite/PostgreSQL/memory)</div>
+              <div class="component-item">factory.py → create_deerflow_agent</div>
+              <div class="component-item">features.py → RuntimeFeatures</div>
             </div>
           </div>
           <div class="module-box">
@@ -105,7 +108,11 @@
             <div class="module-components">
               <div class="component-item">local/local_sandbox.py</div>
               <div class="component-item">tools.py → bash, read_file</div>
-              <div class="component-item">sandbox_provider.py</div>
+              <div class="component-item">sandbox_provider.py → 生命周期管理</div>
+              <div class="component-item">security.py → 安全门控</div>
+              <div class="component-item">file_operation_lock.py → WeakValueDictionary</div>
+              <div class="component-item">search.py → glob, grep 工具</div>
+              <div class="component-item">exceptions.py → 结构化错误</div>
             </div>
           </div>
           <div class="module-box">
@@ -133,6 +140,10 @@
               <div class="component-item">patched_openai.py</div>
               <div class="component-item">patched_deepseek.py</div>
               <div class="component-item">vllm_provider.py</div>
+              <div class="component-item">claude_provider.py → Claude OAuth</div>
+              <div class="component-item">credential_loader.py → CLI 认证</div>
+              <div class="component-item">openai_codex_provider.py → Codex 提供者</div>
+              <div class="component-item">patched_minimax.py → MiniMax 思考内容</div>
             </div>
           </div>
           <div class="module-box">
@@ -143,6 +154,9 @@
               <div class="component-item">builtins/task_tool.py → task()</div>
               <div class="component-item">builtins/present_file_tool.py</div>
               <div class="component-item">builtins/ask_clarification_tool.py</div>
+              <div class="component-item">builtins/setup_agent_tool.py → 自定义代理</div>
+              <div class="component-item">builtins/tool_search.py → 延迟工具发现</div>
+              <div class="component-item">builtins/invoke_acp_agent_tool.py → ACP 代理</div>
             </div>
           </div>
           <div class="module-box">
@@ -155,17 +169,7 @@
               <div class="component-item">installer.py → .skill 安装</div>
             </div>
           </div>
-          <div class="module-box">
-            <div class="module-name">runtime/</div>
-            <div class="module-path">deerflow.runtime.*</div>
-            <div class="module-desc">运行时系统</div>
-            <div class="module-components">
-              <div class="component-item">runs/worker.py → run_agent()</div>
-              <div class="component-item">runs/manager.py → RunManager</div>
-              <div class="component-item">stream_bridge/ → SSE 桥接</div>
-            </div>
           </div>
-        </div>
 
         <div class="layer-divider"></div>
 
@@ -193,6 +197,52 @@
               <div class="component-item">tavily/ → Tavily 搜索</div>
               <div class="component-item">image_search/ → 图片搜索</div>
               <div class="component-item">aio_sandbox/ → Docker 沙箱</div>
+              <div class="component-item">exa/ → Exa 搜索和抓取</div>
+              <div class="component-item">infoquest/ → InfoQuest 搜索</div>
+              <div class="component-item">firecrawl/ → Firecrawl 抓取</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="layer-divider"></div>
+
+        <!-- Guardrails, Runtime, Uploads, Tracing -->
+        <div class="module-grid">
+          <div class="module-box">
+            <div class="module-name">guardrails/</div>
+            <div class="module-path">deerflow.guardrails.*</div>
+            <div class="module-desc">护栏系统 (AllowlistProvider, OAP, 自定义)</div>
+            <div class="module-components">
+              <div class="component-item">guardrail.py → GuardrailMiddleware</div>
+              <div class="component-item">providers/ → AllowlistProvider, OAP</div>
+            </div>
+          </div>
+          <div class="module-box">
+            <div class="module-name">runtime/</div>
+            <div class="module-path">deerflow.runtime.*</div>
+            <div class="module-desc">Gateway 运行时 (RunManager, StreamBridge, Store)</div>
+            <div class="module-components">
+              <div class="component-item">runs/worker.py → run_agent()</div>
+              <div class="component-item">runs/manager.py → RunManager</div>
+              <div class="component-item">stream_bridge/ → SSE 桥接</div>
+              <div class="component-item">store.py → 状态存储</div>
+            </div>
+          </div>
+          <div class="module-box">
+            <div class="module-name">uploads/</div>
+            <div class="module-path">deerflow.uploads.*</div>
+            <div class="module-desc">上传管理 (PDF/PPT/Excel/Word 转换)</div>
+            <div class="module-components">
+              <div class="component-item">upload_manager.py → 文件转换</div>
+              <div class="component-item">converters/ → 格式转换器</div>
+            </div>
+          </div>
+          <div class="module-box">
+            <div class="module-name">tracing/</div>
+            <div class="module-path">deerflow.tracing.*</div>
+            <div class="module-desc">追踪工厂</div>
+            <div class="module-components">
+              <div class="component-item">factory.py → 追踪配置</div>
             </div>
           </div>
         </div>
@@ -211,7 +261,7 @@
           <div class="module-box large">
             <div class="module-name">gateway/</div>
             <div class="module-path">app.gateway.*</div>
-            <div class="module-desc">FastAPI Gateway API</div>
+            <div class="module-desc">FastAPI Gateway API (14 routers)</div>
             <div class="module-components">
               <div class="component-item">app.py → FastAPI 应用入口</div>
               <div class="component-item">services.py → start_run(), sse_consumer()</div>
@@ -222,6 +272,10 @@
               <div class="component-item">routers/mcp.py → /api/mcp</div>
               <div class="component-item">routers/skills.py → /api/skills</div>
               <div class="component-item">routers/uploads.py → 文件上传</div>
+              <div class="component-item">routers/assistants_compat.py → LangGraph 兼容API</div>
+              <div class="component-item">routers/runs.py → Gateway 运行管理</div>
+              <div class="component-item">routers/thread_runs.py → 线程运行管理</div>
+              <div class="component-item">routers/channels.py → 渠道管理</div>
             </div>
           </div>
           <div class="module-box large">
@@ -235,6 +289,10 @@
               <div class="component-item">feishu.py → 飞书集成</div>
               <div class="component-item">slack.py → Slack 集成</div>
               <div class="component-item">telegram.py → Telegram 集成</div>
+              <div class="component-item">discord.py → Discord 集成</div>
+              <div class="component-item">wechat.py → 微信集成</div>
+              <div class="component-item">wecom.py → 企业微信集成</div>
+              <div class="component-item">commands.py → 斜杠命令处理</div>
             </div>
           </div>
         </div>
@@ -252,7 +310,10 @@
 │   │   ├── lead_agent/
 │   │   ├── middlewares/
 │   │   ├── memory/
-│   │   └── subagents/
+│   │   ├── subagents/
+│   │   ├── checkpointer/
+│   │   ├── factory.py
+│   │   └── features.py
 │   ├── sandbox/
 │   ├── mcp/
 │   ├── models/
@@ -261,6 +322,9 @@
 │   ├── runtime/
 │   ├── config/
 │   ├── community/
+│   ├── guardrails/
+│   ├── uploads/
+│   ├── tracing/
 │   ├── utils/
 │   └── client.py                 # DeerFlowClient
 ├── app/                          # app.* 导入
@@ -274,7 +338,11 @@
 │       ├── manager.py
 │       ├── feishu.py
 │       ├── slack.py
-│       └── telegram.py
+│       ├── telegram.py
+│       ├── discord.py
+│       ├── wechat.py
+│       ├── wecom.py
+│       └── commands.py
 └── tests/
     └── test_harness_boundary.py  # 依赖边界测试</div>
       </div>
