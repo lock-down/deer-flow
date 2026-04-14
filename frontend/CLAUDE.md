@@ -1,10 +1,13 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with
+code in this repository.
 
 ## Project Overview
 
-DeerFlow Frontend is a Next.js 16 web interface for an AI agent system. It communicates with a LangGraph-based backend to provide thread-based AI conversations with streaming responses, artifacts, and a skills/tools system.
+DeerFlow Frontend is a Next.js 16 web interface for an AI agent system. It
+communicates with a LangGraph-based backend to provide thread-based AI
+conversations with streaming responses, artifacts, and a skills/tools system.
 
 **Stack**: Next.js 16, React 19, TypeScript 5.8, Tailwind CSS 4, pnpm 10.26.2
 
@@ -21,7 +24,9 @@ DeerFlow Frontend is a Next.js 16 web interface for an AI agent system. It commu
 | `pnpm typecheck` | TypeScript type check (`tsc --noEmit`)            |
 | `pnpm start`     | Start production server                           |
 
-Unit tests live under `tests/unit/` and mirror the `src/` layout (e.g., `tests/unit/core/api/stream-mode.test.ts` tests `src/core/api/stream-mode.ts`). Powered by Vitest; import source modules via the `@/` path alias.
+Unit tests live under `tests/unit/` and mirror the `src/` layout (e.g.,
+`tests/unit/core/api/stream-mode.test.ts` tests `src/core/api/stream-mode.ts`).
+Powered by Vitest; import source modules via the `@/` path alias.
 
 ## Architecture
 
@@ -31,15 +36,22 @@ Frontend (Next.js) ──▶ LangGraph SDK ──▶ LangGraph Backend (lead_age
                                                └── Tools & Skills
 ```
 
-The frontend is a stateful chat application. Users create **threads** (conversations), send messages, and receive streamed AI responses. The backend orchestrates agents that can produce **artifacts** (files/code) and **todos**.
+The frontend is a stateful chat application. Users create **threads**
+(conversations), send messages, and receive streamed AI responses. The backend
+orchestrates agents that can produce **artifacts** (files/code) and **todos**.
 
 ### Source Layout (`src/`)
 
-- **`app/`** — Next.js App Router. Routes: `/` (landing), `/workspace/chats/[thread_id]` (chat), `/workspace/agents/[agent_name]` (custom agents), `/workspace/agents/new` (create agent), `/blog` (blog posts), `/[lang]/docs` (i18n docs), `/api/auth` (better-auth), `/api/memory` (memory API).
+- **`app/`** — Next.js App Router. Routes: `/` (landing),
+  `/workspace/chats/[thread_id]` (chat), `/workspace/agents/[agent_name]`
+  (custom agents), `/workspace/agents/new` (create agent), `/blog` (blog posts),
+  `/[lang]/docs` (i18n docs), `/api/auth` (better-auth), `/api/memory` (memory
+  API).
 - **`components/`** — React components split into:
   - `ui/` — Shadcn UI primitives (auto-generated, ESLint-ignored)
   - `ai-elements/` — Vercel AI SDK elements (auto-generated, ESLint-ignored)
-  - `workspace/` — Chat page components (messages, artifacts, settings, agents, citations)
+  - `workspace/` — Chat page components (messages, artifacts, settings, agents,
+    citations)
   - `landing/` — Landing page sections
 - **`core/`** — Business logic, the heart of the app:
   - `threads/` — Thread creation, streaming, state management (hooks + types)
@@ -67,7 +79,8 @@ The frontend is a stateful chat application. Users create **threads** (conversat
 - **`hooks/`** — Shared React hooks
 - **`lib/`** — Utilities (`cn()` from clsx + tailwind-merge)
 - **`server/`** — Server-side code (better-auth, not yet active)
-- **`styles/`** — Global CSS with Tailwind v4 `@import` syntax and CSS variables for theming
+- **`styles/`** — Global CSS with Tailwind v4 `@import` syntax and CSS variables
+  for theming
 - **`typings/`** — TypeScript type definitions
 
 ### Data Flow
@@ -79,20 +92,28 @@ The frontend is a stateful chat application. Users create **threads** (conversat
 
 ### Key Patterns
 
-- **Server Components by default**, `"use client"` only for interactive components
-- **Thread hooks** (`useThreadStream`, `useSubmitThread`, `useThreads`) are the primary API interface
-- **LangGraph client** is a singleton obtained via `getAPIClient()` in `core/api/`
-- **Environment validation** uses `@t3-oss/env-nextjs` with Zod schemas (`src/env.js`). Skip with `SKIP_ENV_VALIDATION=1`
+- **Server Components by default**, `"use client"` only for interactive
+  components
+- **Thread hooks** (`useThreadStream`, `useSubmitThread`, `useThreads`) are the
+  primary API interface
+- **LangGraph client** is a singleton obtained via `getAPIClient()` in
+  `core/api/`
+- **Environment validation** uses `@t3-oss/env-nextjs` with Zod schemas
+  (`src/env.js`). Skip with `SKIP_ENV_VALIDATION=1`
 - **Custom agents** at `/workspace/agents/` with API hooks in `core/agents/`
 - **Streamdown** (`core/streamdown/`) for streaming Markdown rendering
 
 ## Code Style
 
-- **Imports**: Enforced ordering (builtin → external → internal → parent → sibling), alphabetized, newlines between groups. Use inline type imports: `import { type Foo }`.
+- **Imports**: Enforced ordering (builtin → external → internal → parent →
+  sibling), alphabetized, newlines between groups. Use inline type imports:
+  `import { type Foo }`.
 - **Unused variables**: Prefix with `_`.
-- **Class names**: Use `cn()` from `@/lib/utils` for conditional Tailwind classes.
+- **Class names**: Use `cn()` from `@/lib/utils` for conditional Tailwind
+  classes.
 - **Path alias**: `@/*` maps to `src/*`.
-- **Components**: `ui/` and `ai-elements/` are generated from registries (Shadcn, MagicUI, React Bits, Vercel AI SDK) — don't manually edit these.
+- **Components**: `ui/` and `ai-elements/` are generated from registries
+  (Shadcn, MagicUI, React Bits, Vercel AI SDK) — don't manually edit these.
 
 ## Environment
 
